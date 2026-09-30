@@ -78,12 +78,16 @@ export default function RoomLobby({ code }: { code: string }) {
   const readyCount = snapshot?.players.filter((player) => player.is_ready).length ?? 0;
   return <div className={styles.page}>
     <a className={landing.skipLink} href="#lobby-main">Skip to lobby</a>
-    <header className={landing.header}>
+    <header className={`${landing.header} ${styles.header}`}>
       <Link className={landing.wordmark} href="/" aria-label="Rightish home">right<span>ish</span><i>.</i></Link>
-      {snapshot ? <span className={styles.connection} role="status" data-live={lobby.connection === "live"}><i />{lobby.connection === "live" ? "Connected to your friends" : "Reconnecting live updates…"}</span> : <Link className={styles.homeLink} href="/">Back home ↗</Link>}
+      {snapshot ? <div className={styles.intro}>
+        <span className={styles.eyebrow}>GOOD FRIENDS. BAD ESTIMATES.</span>
+        <h1 id="lobby-title">The almost-right crew.</h1>
+        <p>Get everyone in here. The friendly rivalry starts with a room code.</p>
+      </div> : <Link className={styles.homeLink} href="/">Back home ↗</Link>}
     </header>
 
-    <main id="lobby-main" className={styles.main}>
+    <main id="lobby-main" className={styles.main} aria-labelledby={snapshot ? "lobby-title" : undefined}>
       {needsJoin ? <section className={styles.gate}>
         <div className={styles.mascot}><Illustration kind="split" /></div>
         <span className={styles.eyebrow}>YOU’RE INVITED · ROOM {code}</span>
@@ -102,21 +106,14 @@ export default function RoomLobby({ code }: { code: string }) {
         {lobby.error && !["ROOM_NOT_FOUND", "ROOM_EXPIRED"].includes(lobby.error.code) && <button className={landing.submitButton} onClick={lobby.retry}>Try connecting again <span aria-hidden="true">↗</span></button>}
         {lobby.error && <Link className={styles.backLink} href="/">Back to the good stuff</Link>}
       </section> : <>
-        <div className={styles.intro}>
-          <span className={styles.eyebrow}>GOOD FRIENDS. BAD ESTIMATES.</span>
-          <h1>The almost-right crew.</h1>
-          <p>Get everyone in here. The friendly rivalry starts with a room code.</p>
-        </div>
         {(actionError || lobby.error) && <div className={styles.error} role="alert">{actionError ?? lobby.error?.message}{lobby.error && <button className={styles.retryButton} onClick={lobby.retry} disabled={!!busy}>Reconnect</button>}</div>}
         <div className={styles.layout}>
           <aside className={styles.inviteCard} aria-labelledby="invite-title">
-            <span className={styles.eyebrow}>YOUR LITTLE CORNER OF CHAOS</span>
             <h2 id="invite-title">Bring your friends.</h2>
-            <p>Share this code with your friends. No accounts. No secret handshake.</p>
             <label className={styles.codeLabel} htmlFor="lobby-code">ROOM CODE</label>
             <input id="lobby-code" className={styles.roomCode} value={snapshot.room.code} readOnly onFocus={(event) => event.target.select()} />
             <button className={`${styles.goldButton} ${styles.copyButton}`} onClick={() => void copyCode()}>Copy code <span aria-hidden="true">⧉</span></button>
-            <p className={styles.copyStatus} role="status" aria-live="polite">{copyStatus ?? "Friends can join from any browser."}</p>
+            <p className={styles.copyStatus} role="status" aria-live="polite">{copyStatus ?? "Share this code with your friends so they can join the room."}</p>
             <div className={styles.inviteArt}><Illustration kind="split" /></div>
             <span className={styles.artNote}>better together. probably.</span>
           </aside>

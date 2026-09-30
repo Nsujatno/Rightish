@@ -1,11 +1,10 @@
 .page { min-height: 100svh; display: flex; flex-direction: column; background: #fffaf0; }
+.page > .header { display: grid; grid-template-columns: minmax(145px, 1fr) minmax(0, 700px) minmax(145px, 1fr); gap: 16px; align-items: start; width: 100%; margin-block: 0; }
+.header > a:first-child { justify-self: start; margin-top: 4px; }
 .main { width: min(1120px, 100%); margin: 20px auto 50px; padding: 0 32px; flex: 1; }
-.connection { display: inline-flex; align-items: center; gap: 8px; color: #827a61; font-size: 12px; font-weight: 800; }
-.connection > i, .presence > i { width: 7px; height: 7px; border-radius: 50%; background: #d5b574; flex-shrink: 0; }
-.connection[data-live="true"] { color: #6b8264; }
-.connection[data-live="true"] > i { background: #88a082; }
 .homeLink, .backLink { color: #66775d; font-weight: 800; font-size: 13px; text-decoration: none; }
-.intro { text-align: center; margin: 20px 0 38px; }
+.homeLink { grid-column: 3; justify-self: end; }
+.intro { text-align: center; }
 .eyebrow { color: #8c917d; font-size: 9px; letter-spacing: 1.4px; font-weight: 900; }
 .intro h1, .gate h1 { font-family: var(--font-display), sans-serif; font-weight: 500; font-size: clamp(35px, 4vw, 49px); letter-spacing: -1.3px; line-height: 1.15; margin: 10px 0 12px; }
 .intro p, .gate > p { color: #7a816f; font-size: 14px; line-height: 1.8; margin: 0; }
@@ -45,7 +44,7 @@
 .youTag { color: #648159; background: #e5efdf; }
 .hostTag { color: #9c7c33; background: #f5eac6; }
 .presence { display: flex; align-items: center; gap: 5px; color: #999e8b; font-size: 10px; }
-.presence > i { width: 5px; height: 5px; background: #b7baa8; }
+.presence > i { width: 5px; height: 5px; background: #b7baa8; border-radius: 50%; flex-shrink: 0; }
 .presence[data-online="true"] > i { background: #8ca77e; }
 .playerReady { margin-left: auto; color: #aaa68e; font-size: 11px; flex-shrink: 0; }
 .playerReady[data-ready="true"] { color: #779366; font-weight: 900; }
@@ -80,9 +79,10 @@
   .playerReady { font-size: 10px; }
 }
 @media (max-width: 700px) {
+  .page > .header { grid-template-columns: 1fr auto; gap: 24px; }
+  .homeLink { grid-column: 2; align-self: center; }
+  .intro { grid-column: 1 / -1; }
   .main { padding: 0 20px; margin-top: 8px; }
-  .connection { font-size: 10px; max-width: 150px; line-height: 1.6; }
-  .intro { margin: 15px 0 28px; }
   .intro p { font-size: 12px; max-width: 300px; margin: auto; }
   .layout { grid-template-columns: 1fr; }
   .inviteCard { padding: 22px; }

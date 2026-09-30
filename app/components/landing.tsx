@@ -144,13 +144,20 @@ export default function Landing() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <Doodles />
         <div className={styles.heroContent}>
+          {activeRoom && /^[A-Z0-9]{6}$/.test(activeRoom) && <Link className={styles.resumeRoom} href={`/room/${activeRoom}`} onClick={() => pop()}>
+            <svg className={styles.resumeBubble} viewBox="0 0 300 108" fill="none" aria-hidden="true">
+              <path d="M22 36 5 23 40 24 40 8 68 18 82 3 100 17 126 7 137 17 162 3 177 17 208 7 216 20 248 12 247 27 278 22 266 39 293 46 273 57 289 73 260 75 259 90 230 83 216 96 196 85 197 104 176 87 153 95 141 83 110 94 100 82 71 91 68 78 36 85 39 68 9 70 25 53 4 45Z" fill="#faf0d6" stroke="#b99957" strokeWidth="2.2" strokeLinejoin="round" />
+              <path className={styles.resumeSpark} d="m276 4 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#d77760" />
+              <path className={styles.resumeSpark} d="m15 88 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#a6b898" />
+            </svg>
+            <span className={styles.resumeLabel}>Back to room<strong>{activeRoom}</strong></span>
+          </Link>}
           <h1 id="hero-title">Close enough.<br /><span>Fun enough.</span><svg className={styles.underline} viewBox="0 0 440 25" aria-hidden="true"><path d="M8 15Q213-6 428 12M26 23Q222 7 400 20" stroke="#eab64d" strokeWidth="5" strokeLinecap="round" fill="none" /></svg></h1>
           <p className={styles.intro}>A party game for your perfectly imperfect brain.<br className={styles.desktopBreak} /> Trust your gut, challenge your friends, and get it <em>right-ish.</em></p>
           <div className={styles.actions}>
             <button className={`${styles.playButton} ${styles.hostButton}`} onClick={() => open("host")}><span className={styles.buttonIcon}><Icon kind="plus" /></span><span>Host a game<small>You bring the friends.</small></span></button>
             <button className={`${styles.playButton} ${styles.joinButton}`} onClick={() => open("join")}><span className={styles.buttonIcon}><Icon kind="arrow" /></span><span>Join a game<small>Got a room code?</small></span></button>
           </div>
-          {activeRoom && /^[A-Z0-9]{6}$/.test(activeRoom) && <Link className={styles.resumeRoom} href={`/room/${activeRoom}`}>Back to room {activeRoom}</Link>}
           <div className={styles.reassurance}><span>No downloads</span><i>✦</i><span>No accounts</span><i>✦</i><span>Just your friends</span></div>
           <p className={styles.heroNote}><svg className={styles.noteArrow} width="48" height="86" viewBox="0 0 48 86" fill="none" aria-hidden="true"><path d="M43 78C25 80 10 69 10 56C10 44 34 40 36 52C39 68 12 68 10 49C8 35 11 25 15 18M4 26L15 18L18 31" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg><span>being a little wrong is the whole point.</span></p>
         </div>
