@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { enterRoom } from "@/lib/rooms/client";
 import { Doodles, Illustration, type GameArt } from "./art";
 import styles from "./landing.module.css";
 
@@ -61,7 +63,11 @@ export default function Landing() {
   const [modal, setModal] = useState<Modal>(null);
   const [nickname, setNickname] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submitting = useRef(false);
+  const router = useRouter();
+  const activeRoom = useSetting("activeRoom");
   const sound = useSetting("sound") === "true";
   const motionSetting = useSetting("paused");
   const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
@@ -99,19 +105,27 @@ export default function Landing() {
     pop();
     setNickname(readSetting("nickname") ?? "");
     setRoomCode(readSetting("roomCode") ?? "");
-    setSaved(false);
+    setError("");
     setModal(next);
   }
 
-  function savePlayer(event: FormEvent<HTMLFormElement>) {
+  async function savePlayer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const name = nickname.trim();
-    if (!name) return;
-    saveSetting("nickname", name);
-    if (modal === "join") saveSetting("roomCode", roomCode);
-    setNickname(name);
-    setSaved(true);
-    pop();
+    if (!name || submitting.current) return;
+    submitting.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const snapshot = await enterRoom(name, modal === "join" ? roomCode : undefined);
+      if (modal === "join") saveSetting("roomCode", roomCode);
+      pop();
+      router.push(`/room/${snapshot.room.code}`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Something went wrong. Try again.");
+      submitting.current = false;
+      setBusy(false);
+    }
   }
 
   return <div className={styles.page} data-paused={paused} data-motion={motionSetting === "false" ? "on" : "auto"}>
@@ -136,6 +150,7 @@ export default function Landing() {
             <button className={`${styles.playButton} ${styles.hostButton}`} onClick={() => open("host")}><span className={styles.buttonIcon}><Icon kind="plus" /></span><span>Host a game<small>You bring the friends.</small></span></button>
             <button className={`${styles.playButton} ${styles.joinButton}`} onClick={() => open("join")}><span className={styles.buttonIcon}><Icon kind="arrow" /></span><span>Join a game<small>Got a room code?</small></span></button>
           </div>
+          {activeRoom && /^[A-Z0-9]{6}$/.test(activeRoom) && <Link className={styles.resumeRoom} href={`/room/${activeRoom}`}>Back to room {activeRoom}</Link>}
           <div className={styles.reassurance}><span>No downloads</span><i>✦</i><span>No accounts</span><i>✦</i><span>Just your friends</span></div>
           <p className={styles.heroNote}><svg className={styles.noteArrow} width="48" height="86" viewBox="0 0 48 86" fill="none" aria-hidden="true"><path d="M43 78C25 80 10 69 10 56C10 44 34 40 36 52C39 68 12 68 10 49C8 35 11 25 15 18M4 26L15 18L18 31" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg><span>being a little wrong is the whole point.</span></p>
         </div>
@@ -152,14 +167,14 @@ export default function Landing() {
 
     <footer className={styles.footer}><span className={styles.footerBrand}>rightish<span>.</span></span><p>Made for the “one more round” kind of friends.</p><button onClick={() => open("how")}>The very simple rules <span aria-hidden="true">↗</span></button></footer>
 
-    <dialog ref={dialog} className={styles.dialog} aria-labelledby="dialog-title" onClose={() => setModal(null)} onClick={(event) => { const bounds = event.currentTarget.getBoundingClientRect(); if (event.target === event.currentTarget && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.current?.close(); }}>
-      <button className={styles.closeButton} onClick={() => dialog.current?.close()} aria-label="Close dialog"><Icon kind="close" /></button>
+    <dialog ref={dialog} className={styles.dialog} aria-labelledby="dialog-title" onClose={() => setModal(null)} onCancel={(event) => { if (busy) event.preventDefault(); }} onClick={(event) => { const bounds = event.currentTarget.getBoundingClientRect(); if (!busy && event.target === event.currentTarget && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.current?.close(); }}>
+      <button className={styles.closeButton} disabled={busy} onClick={() => dialog.current?.close()} aria-label="Close dialog"><Icon kind="close" /></button>
       {modal === "how" ? <>
         <span className={styles.modalEyebrow}>THE PLAN IS PRETTY SIMPLE</span>
         <h2 id="dialog-title">Good friends.<br />Bad estimates.</h2>
         <p className={styles.modalDescription}>Quick minigames that put your perception, memory, and timing to the test.</p>
         <ol className={styles.steps}><li><span>1</span><div><h3>Get the gang together.</h3><p>One friend hosts. Everyone else joins with a room code and a nickname.</p></div></li><li><span>2</span><div><h3>Go with your gut.</h3><p>Face the same little challenge. Make your best guess before time runs out.</p></div></li><li><span>3</span><div><h3>See how close you got.</h3><p>Reveal the answer, collect points, and insist you’ll win the next round.</p></div></li></ol>
-        <div className={styles.previewNotice}>We’re building the party! Multiplayer and playable rounds are coming next.</div>
+        <div className={styles.previewNotice}>Get your crew together in the lobby. Playable rounds are coming next.</div>
         <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Got it <Icon kind="arrow" /></button>
       </> : game ? <>
         <div className={`${styles.modalArt} ${styles[game.kind]}`}><Illustration kind={game.kind} /></div>
@@ -167,15 +182,13 @@ export default function Landing() {
         <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Sounds about right <Icon kind="arrow" /></button>
       </> : modal === "host" || modal === "join" ? <>
         <span className={styles.modalEyebrow}>LET’S GET YOU READY</span>
-        <h2 id="dialog-title">{saved ? `Looking good, ${nickname}!` : modal === "host" ? "Your party starts here." : "Come on in."}</h2>
-        {saved ? <><div className={styles.successFace} aria-hidden="true">☺</div><p className={styles.modalDescription} role="status">{modal === "join" ? "Your nickname and room code are saved on this device." : "Your nickname is saved on this device."} You’ll be ready when multiplayer arrives.</p><div className={styles.previewNotice}>This is a preview. No room has been created or joined yet.</div><button className={styles.submitButton} onClick={() => dialog.current?.close()}>Back to the good stuff <Icon kind="arrow" /></button></> : <>
+        <h2 id="dialog-title">{modal === "host" ? "Your party starts here." : "Come on in."}</h2>
           <p className={styles.modalDescription}>{modal === "host" ? "First things first: what should your friends call you?" : "Bring your nickname and a code from your friend."}</p>
-          <div className={styles.previewNotice}>Landing-page preview · Room connections are coming next. You can save your details for now.</div>
-          <form className={styles.form} onSubmit={savePlayer}><label htmlFor="nickname">Your nickname<input id="nickname" name="nickname" value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="e.g. Almost a genius" maxLength={20} pattern=".*\S.*" title="Enter a nickname with at least one non-space character" autoComplete="nickname" required /></label>
+          <form className={styles.form} onSubmit={savePlayer} aria-busy={busy}><label htmlFor="nickname">Your nickname<input id="nickname" name="nickname" disabled={busy} value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="e.g. Almost a genius" maxLength={20} pattern=".*\S.*" title="Enter a nickname with at least one non-space character" autoComplete="nickname" required /></label>
             {modal === "join" && <label htmlFor="room-code">Room code<input className={styles.codeInput} id="room-code" name="roomCode" value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))} placeholder="ABC123" minLength={6} maxLength={6} pattern="[A-Z0-9]{6}" title="Enter a six-character room code" autoComplete="off" spellCheck={false} required /><small>Six letters or numbers. Zero secret handshakes.</small></label>}
-            <button className={styles.submitButton} type="submit">{modal === "host" ? "Save my nickname" : "Save my join details"}<Icon kind="arrow" /></button>
+            {error && <p className={styles.formError} role="alert">{error}</p>}
+            <button className={styles.submitButton} type="submit" disabled={busy}>{busy ? modal === "host" ? "Creating your room…" : "Joining your friends…" : modal === "host" ? "Create room" : "Join game"}</button>
           </form>
-        </>}
       </> : null}
     </dialog>
   </div>;

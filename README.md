@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# Rightish
 
-## Getting Started
+A party game for your perfectly imperfect brain. The landing page and multiplayer lobby are implemented; playable rounds are next.
 
-First, run the development server:
+## Local development
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Use Node 22 or newer. Install the project's dependencies yourself with `npm install`, then run `npm run dev` and open http://localhost:3000.
+
+Create `.env.local` with:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+SUPABASE_SECRET_KEY=your-server-secret-key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The secret key stays on the server. Never give it a `NEXT_PUBLIC_` prefix. Restart the dev server after changing these values.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+In Supabase:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Enable anonymous sign-ins under Authentication settings.
+2. Apply the lobby database setup SQL. For an already configured project, run `supabase/migrations/202609290002_four_player_lobbies.sql` in the SQL Editor to use four-player rooms.
+3. Disable **Allow public access** in Realtime settings; lobby channels are private.
 
-## Learn More
+Guests have a persisted anonymous Auth session. Next.js verifies their access token before calling server-only room functions. Browsers cannot write room tables directly or invoke these functions. Database changes broadcast an invalidation to members; each lobby fetches a fresh snapshot. Presence shows who is connected. Polling every 15 seconds recovers missed notifications.
 
-To learn more about Next.js, take a look at the following resources:
+## Lobby behavior
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Host creates a room with a six-character code and a player nickname.
+- Friends join using the six-character room code.
+- Players appear live, can toggle ready, and keep their place when refreshing or disconnecting.
+- Leaving explicitly removes a player; the next player becomes host when the host leaves.
+- New rooms accept four players and expire after 24 hours. Expiration does not delete database rows.
+- The guest identity belongs to that browser profile. Incognito or another browser creates another player; clearing browser storage loses that identity.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Use two separate browser profiles to try multiplayer. Two tabs in one profile represent the same player.
 
-## Deploy on Vercel
+## Checks
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run build
+```
