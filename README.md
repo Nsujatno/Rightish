@@ -20,7 +20,7 @@ SUPABASE_SECRET_KEY=your-server-secret-key
 - Friends join using the six-character room code.
 - Players appear live, can toggle ready, and keep their place when refreshing or disconnecting.
 - Hosts choose playable games, then use each game's settings button. Split It offers 1–10 rounds, a 5–60 second timer, and a target from 50/50 to 80/20. Saving settings clears Ready marks.
-- Rooms created with the earlier settings format ask the host to save once before starting; their round, timer, and target choices are preserved.
+- Rooms created with the earlier settings format keep their round, timer, and target choices and can start without saving again.
 - A match needs at least two players and everyone Ready. Each round has a shared three-second countdown and a server deadline. The host advances after the reveal.
 - A disconnected host hands control to the next active player after 30 seconds. Explicitly leaving removes a player from the match; a rematch returns everyone to the same lobby with settings kept and Ready marks cleared.
 - Leaving explicitly removes a player; the next player becomes host when the host leaves.

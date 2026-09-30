@@ -1,6 +1,7 @@
 import { matchRoundCount, selectGame, type GameId } from "@/lib/games/registry";
-import { gameOptionsFor, getGame, parseMatchSettings } from "@/lib/games/settings";
+import { gameOptionsFor, getGame, needsDatabaseSettingsUpgrade, parseMatchSettings, settingsForDatabase } from "@/lib/games/settings";
 import type { MatchSettings } from "@/lib/games/types";
+import { getServerSupabase } from "@/lib/supabase/server";
 import { handleRoomRequest, readBody, requirePlayer, RoomError, roomCode, roomResponse, roomRpc } from "@/lib/rooms/server";
 import type { RoomSnapshot } from "@/lib/rooms/types";
 
@@ -26,6 +27,21 @@ export async function POST(request: Request, context: Context) {
     if (body.action === "start") {
       const settings = parseMatchSettings(snapshot.room.settings);
       if (!settings) throw new RoomError(503, "INVALID_SETTINGS", "The room settings need to be saved again.");
+      // Old room defaults lack per-game settings; newer SQL reads those fields
+      // while older SQL still reads the match-wide fields. Upgrade in place
+      // without clearing Ready marks when the host starts the match.
+      if (needsDatabaseSettingsUpgrade(snapshot.room.settings, settings)) {
+        if (snapshot.room.host_id !== playerId) throw new RoomError(403, "NOT_HOST", "Only the host can start the match.");
+        const { data, error } = await getServerSupabase().from("rooms")
+          .update({ settings: settingsForDatabase(settings) })
+          .eq("id", snapshot.room.id).eq("host_id", playerId).eq("status", "lobby")
+          .select("id").maybeSingle();
+        if (error) {
+          console.error("Room settings upgrade failed", { code: error.code, message: error.message });
+          throw new RoomError(503, "CONNECTION_UNAVAILABLE", "The room settings couldn’t be prepared. Try again.");
+        }
+        if (!data) throw new RoomError(409, "MATCH_IN_PROGRESS", "The room changed before the match could start. Refresh and try again.");
+      }
       const round = newRound(settings, 0);
       const next = await roomRpc<RoomSnapshot>("rightish_start_match", {
         p_code: code, p_player_id: playerId, p_game_id: round.gameId,

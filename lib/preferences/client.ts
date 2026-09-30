@@ -29,20 +29,7 @@ export function useSetting(key: string) {
   return useSyncExternalStore(subscribe, () => readSetting(key), () => null);
 }
 
-const motionQuery = "(prefers-reduced-motion: reduce)";
-
-function subscribeReducedMotion(callback: () => void) {
-  const query = window.matchMedia(motionQuery);
-  query.addEventListener("change", callback);
-  return () => query.removeEventListener("change", callback);
-}
-
-function getReducedMotion() {
-  return window.matchMedia(motionQuery).matches;
-}
-
 export function useMotionPreference() {
   const savedPaused = useSetting("paused");
-  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
-  return resolveMotionPreference(savedPaused, reducedMotion);
+  return resolveMotionPreference(savedPaused);
 }

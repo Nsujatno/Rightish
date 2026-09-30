@@ -54,11 +54,6 @@ export function parseMatchSettings(input: unknown): MatchSettings<GameId> | null
   };
 }
 
-export function hasPerGameSettings(input: unknown): boolean {
-  return !!input && typeof input === "object" && "gameSettings" in input &&
-    !!(input as Record<string, unknown>).gameSettings;
-}
-
 // Keep the old fields while deployed SQL functions may still read them. The
 // current functions use gameSettings; the old ones only support one game timer.
 export function settingsForDatabase(settings: MatchSettings<GameId>) {
@@ -69,6 +64,14 @@ export function settingsForDatabase(settings: MatchSettings<GameId>) {
     durationSeconds: first.durationSeconds,
     gameOptions: Object.fromEntries(settings.enabledGameIds.map((id) => [id, settings.gameSettings[id]!.options])),
   };
+}
+
+export function needsDatabaseSettingsUpgrade(input: unknown, settings: MatchSettings<GameId>): boolean {
+  if (!input || typeof input !== "object") return true;
+  const stored = input as Record<string, unknown>;
+  const compatible = settingsForDatabase(settings);
+  return !stored.gameSettings || !stored.gameOptions ||
+    stored.roundCount !== compatible.roundCount || stored.durationSeconds !== compatible.durationSeconds;
 }
 
 export function gameSettingsFor(settings: MatchSettings, id: string): GameMatchSettings {

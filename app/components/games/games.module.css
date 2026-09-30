@@ -16,6 +16,9 @@
 .roundDots i { width: 8px; height: 8px; border-radius: 50%; background: #e5e1d4; }
 .roundDots i[data-state="current"] { background: #e5b351; box-shadow: 0 0 0 4px #f6e8c8; }
 .roundDots i[data-state="done"] { background: #9eaf8c; }
+.splitCountdown { position: relative; display: grid; place-items: center; width: 100%; height: 100%; filter: drop-shadow(0 10px 0 #d7a34b6b); }
+.splitCountdown svg { width: 100%; height: 100%; overflow: visible; }
+.splitCountdownAccessible { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 32px 0 25px; }
 .eyebrow { font-size: 9px; font-weight: 900; letter-spacing: 1.6px; color: #838970; }
 .heading h1 { font-family: var(--font-display), sans-serif; font-size: clamp(33px, 4vw, 48px); font-weight: 500; line-height: 1.15; letter-spacing: -1.1px; margin: 7px 0 8px; }

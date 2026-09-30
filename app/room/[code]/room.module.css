@@ -93,14 +93,18 @@ label.gameChoiceMain { cursor: pointer; }
 .settingsActions .settingsActionError { color: #a34536; }
 .settingsActions button { min-width: 130px; }
 .startHint { text-align: right; font-size: 10px; color: #a07862; font-weight: 700; margin: 12px 3px 0; }
-.countdownPanel { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; place-items: center; align-content: center; gap: 20px; width: min(480px, 100%); min-height: 380px; margin: 15px auto 45px; border: 1px solid #e9dfc8; border-radius: 32px; background: radial-gradient(circle at 50% 45%, #fff9ea 0 23%, #f6e8d5 70%, #e6eddf 100%); box-shadow: 0 8px 0 #e9dfc877; overflow: hidden; }
+.countdownPanel { position: relative; display: grid; place-items: center; align-content: center; gap: 10px; width: min(480px, 100%); min-height: 380px; margin: 15px auto 45px; padding: 24px; border: 1px solid #e9dfc8; border-radius: 32px; background: radial-gradient(circle at 50% 45%, #fff9ea 0 23%, #f6e8d5 70%, #e6eddf 100%); box-shadow: 0 8px 0 #e9dfc877; overflow: hidden; }
 .countdownPanel::before, .countdownPanel::after { content: ""; position: absolute; width: 115px; height: 115px; border-radius: 35px; background: #c9d8ed88; rotate: 22deg; }
 .countdownPanel::before { top: -55px; left: -28px; }
 .countdownPanel::after { right: -40px; bottom: -53px; background: #efb9a799; }
-.countdownNumber { position: relative; z-index: 1; display: grid; place-items: center; width: 190px; height: 190px; border-radius: 52% 48% 44% 56%; background: #f5d58d; border: 3px solid #d4ae65; box-shadow: 0 11px 0 #ddb56d; color: #6b5937; font-family: var(--font-display), sans-serif; font-size: 119px; font-weight: 500; line-height: 1; animation: matchCountPop .7s cubic-bezier(.16,.85,.27,1) both; }
-.countdownSpark { z-index: 1; font-size: 36px; color: #93ad85; animation: matchSpark .9s ease-in-out infinite alternate; }
-.countdownSpark:nth-of-type(2) { color: #d98978; animation-delay: .3s; }
-.countdownPanel p { z-index: 1; grid-column: 1 / -1; margin: 0; text-align: center; color: #7c7968; font-size: 14px; font-weight: 900; }
+.countdownEyebrow { position: relative; z-index: 1; color: #897b5e; font-size: 10px; font-weight: 900; letter-spacing: 1.7px; text-align: center; }
+.countdownStage { position: relative; z-index: 1; display: grid; place-items: center; width: 230px; height: 205px; }
+.countdownFallback { display: grid; place-items: center; width: 170px; height: 170px; border-radius: 44% 56% 52% 48%; background: #f5c35f; box-shadow: 0 9px 0 #d7a34b6b; color: #5c492d; font-family: var(--font-display), sans-serif; font-size: 106px; font-weight: 500; line-height: 1; animation: matchCountPop .7s cubic-bezier(.16,.85,.27,1) both; }
+.countdownSteps { position: relative; z-index: 1; display: flex; gap: 7px; margin-top: 1px; }
+.countdownSteps i { width: 25px; height: 6px; border-radius: 9px; background: #d7cbb5; transition: background .4s, transform .4s; }
+.countdownSteps i[data-done="true"] { background: #a5b993; }
+.countdownSteps i[data-current="true"] { background: #dc9b51; transform: scaleX(1.2); }
+.countdownPanel p { position: relative; z-index: 1; margin: 8px 0 0; text-align: center; color: #7c7968; font-size: 14px; font-weight: 900; }
 .waitingCard { width: min(480px, 100%); margin: 20px auto 45px; padding: 24px 30px; border: 1px solid #dce3cf; border-radius: 26px; background: #f1f5e9; text-align: center; }
 .waitingArt { display: inline-block; color: #e2b767; font-size: 38px; animation: matchSpark 1.2s ease-in-out infinite alternate; }
 .waitingCard h2 { font-family: var(--font-display), sans-serif; font-size: 35px; font-weight: 500; margin: 8px 0; }
@@ -157,9 +161,9 @@ label.gameChoiceMain { cursor: pointer; }
   .settingsActions { align-items: stretch; }
   .settingsActions p { min-width: 100%; }
   .settingsActions button { flex: 1; }
-  .countdownPanel { min-height: 320px; gap: 12px; }
-  .countdownNumber { width: 145px; height: 145px; font-size: 91px; }
-  .countdownSpark { font-size: 25px; }
+  .countdownPanel { min-height: 320px; gap: 7px; }
+  .countdownStage { width: 190px; height: 170px; }
+  .countdownFallback { width: 145px; height: 145px; font-size: 91px; }
   .countdownPanel p { font-size: 12px; }
   .finalMatchCard { padding: 18px; }
 }
@@ -176,6 +180,4 @@ label.gameChoiceMain { cursor: pointer; }
   .readyBar { flex-direction: column; align-items: stretch; }
   .hostNote p { max-width: 180px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .page * { transition: none !important; }
-}
+.page[data-paused="true"] * { animation: none !important; transition: none !important; }

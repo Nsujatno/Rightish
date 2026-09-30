@@ -8,8 +8,9 @@ import { enterRoom, forgetRoom, roomRequest } from "@/lib/rooms/client";
 import type { RoomSnapshot } from "@/lib/rooms/types";
 import { useLobby } from "@/lib/rooms/use-lobby";
 import { defaultMatchSettings, type GameId } from "@/lib/games/registry";
-import { hasPerGameSettings, parseMatchSettings } from "@/lib/games/settings";
+import { parseMatchSettings } from "@/lib/games/settings";
 import type { MatchSettings } from "@/lib/games/types";
+import { useMotionPreference } from "@/lib/preferences/client";
 import { HostSettings } from "./host-settings";
 import { RoomMatch } from "./room-match";
 import landing from "@/app/components/landing.module.css";
@@ -22,6 +23,7 @@ function playerColor(id: string) {
 
 export default function RoomLobby({ code }: { code: string }) {
   const lobby = useLobby(code);
+  const { paused, motion } = useMotionPreference();
   const router = useRouter();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState<"join" | "ready" | "leave" | "settings" | "start" | null>(null);
@@ -110,10 +112,10 @@ export default function RoomLobby({ code }: { code: string }) {
 
   const readyCount = snapshot?.players.filter((player) => player.is_ready).length ?? 0;
   const parsedSettings = snapshot ? parseMatchSettings(snapshot.room.settings) : null;
-  const settingsNeedSave = !!snapshot && (!parsedSettings || !hasPerGameSettings(snapshot.room.settings));
+  const settingsNeedSave = !!snapshot && !parsedSettings;
   if (snapshot?.match && snapshot.room.status !== "lobby") {
     const matchSettings = parseMatchSettings(snapshot.match.settings);
-    if (!matchSettings) return <div className={styles.page}><main className={styles.main}>
+    if (!matchSettings) return <div className={styles.page} data-paused={paused} data-motion={motion}><main className={styles.main}>
       <p className={styles.error} role="alert">This match’s settings couldn’t be loaded. Try reconnecting to the room.</p>
       <button className={styles.softButton} onClick={lobby.retry}>Reconnect</button>
     </main></div>;
@@ -121,7 +123,7 @@ export default function RoomLobby({ code }: { code: string }) {
       snapshot={{ ...snapshot, match: { ...snapshot.match, settings: matchSettings } }}
       onSnapshot={lobby.update} onLeave={leave} />;
   }
-  return <div className={styles.page}>
+  return <div className={styles.page} data-paused={paused} data-motion={motion}>
     <a className={landing.skipLink} href="#lobby-main">Skip to lobby</a>
     <header className={`${landing.header} ${styles.header}`}>
       <Link className={landing.wordmark} href="/" aria-label="Rightish home">right<span>ish</span><i>.</i></Link>

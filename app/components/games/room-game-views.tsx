@@ -7,11 +7,14 @@ import type { SplitItChallenge } from "@/lib/games/split-it/generator";
 import { formatSplit } from "@/lib/games/split-it/format";
 import type { ScoredResult } from "@/lib/games/types";
 import { ShapePreview } from "./split-it/shape";
+import { SplitItCountdown } from "./split-it/countdown";
 import { SplitItRound } from "./split-it/round";
 import { SplitItReveal } from "./split-it/reveal";
 
 export type RoomGameView = {
   prompt: (options: unknown) => string;
+  CountdownArt?: ComponentType<{ count: number }>;
+  countdownLabel?: string;
   Round: ComponentType<{ challenge: unknown; options: unknown; initialAnswer: unknown;
     onAnswerChange: (value: unknown | null) => void; onConfirm: () => void }>;
   result: (challenge: unknown, value: unknown, options: unknown) => ScoredResult;
@@ -27,6 +30,8 @@ function splitOptions(value: unknown): SplitItOptions {
 }
 
 const splitItView: RoomGameView = {
+  CountdownArt: SplitItCountdown,
+  countdownLabel: "WATCH IT TAKE SHAPE",
   prompt(options) {
     const target = splitOptions(options).targetPercent;
     return `Place two anchors. Aim for ${target} / ${100 - target}.`;

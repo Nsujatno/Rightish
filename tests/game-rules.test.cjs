@@ -16,8 +16,8 @@ require.extensions[".ts"] = (module, filename) => {
 const { generateShape } = require("../lib/games/split-it/generator.ts");
 const { splitIt, isPerfectSplit, isPerfectTarget, isSplitItOptions } = require("../lib/games/split-it/index.ts");
 const { polygonArea, clipPolygon, cutFractions, bisectAtAngle } = require("../lib/games/split-it/geometry.ts");
-const { selectGame, matchRoundCount, roundSchedule } = require("../lib/games/registry.ts");
-const { parseMatchSettings, gameOptionsFor, gameSettingsFor, hasPerGameSettings, settingsForDatabase } = require("../lib/games/settings.ts");
+const { selectGame, matchRoundCount, roundSchedule, defaultMatchSettings } = require("../lib/games/registry.ts");
+const { parseMatchSettings, gameOptionsFor, gameSettingsFor, needsDatabaseSettingsUpgrade, settingsForDatabase } = require("../lib/games/settings.ts");
 const { roundSeed } = require("../lib/games/random.ts");
 const { resolveMotionPreference } = require("../lib/preferences/motion.ts");
 
@@ -27,13 +27,10 @@ const horizontal = (y) => ({ a: { x: 0, y }, b: { x: 1, y } });
 const vertical = (x) => ({ a: { x, y: 0 }, b: { x, y: 1 } });
 const close = (a, b, epsilon = 1e-9) => assert.ok(Math.abs(a - b) <= epsilon, `${a} differs from ${b}`);
 
-test("saved game motion choices override system preferences; unset choices follow the system", () => {
-  assert.deepEqual(resolveMotionPreference("false", true), { paused: false, motion: "on" });
-  assert.deepEqual(resolveMotionPreference("false", false), { paused: false, motion: "on" });
-  assert.deepEqual(resolveMotionPreference("true", false), { paused: true, motion: "off" });
-  assert.deepEqual(resolveMotionPreference("true", true), { paused: true, motion: "off" });
-  assert.deepEqual(resolveMotionPreference(null, true), { paused: true, motion: "auto" });
-  assert.deepEqual(resolveMotionPreference(null, false), { paused: false, motion: "auto" });
+test("game motion starts on and preserves an explicit off choice", () => {
+  assert.deepEqual(resolveMotionPreference(null), { paused: false, motion: "on" });
+  assert.deepEqual(resolveMotionPreference("false"), { paused: false, motion: "on" });
+  assert.deepEqual(resolveMotionPreference("true"), { paused: true, motion: "off" });
 });
 
 test("analytic areas and accuracy-only scores", () => {
@@ -180,6 +177,10 @@ test("host settings accept only playable games, valid timers, and valid game opt
 });
 
 test("saved rooms with the original settings shape upgrade without losing host choices", () => {
+  assert.deepEqual(parseMatchSettings({
+    enabledGameIds: ["split-it"], roundCount: 5, durationSeconds: 20,
+    gameOptions: { "split-it": { targetPercent: 50 } },
+  }), defaultMatchSettings);
   const legacy = {
     enabledGameIds: ["split-it"], roundCount: 7, durationSeconds: 35,
     gameOptions: { "split-it": { targetPercent: 70 } },
@@ -189,10 +190,10 @@ test("saved rooms with the original settings shape upgrade without losing host c
       "split-it": { roundCount: 7, durationSeconds: 35, options: { targetPercent: 70 } },
     },
   };
-  assert.equal(hasPerGameSettings(legacy), false);
   assert.deepEqual(parseMatchSettings(legacy), current);
-  assert.equal(hasPerGameSettings(current), true);
+  assert.equal(needsDatabaseSettingsUpgrade(legacy, current), true);
   assert.deepEqual(parseMatchSettings(settingsForDatabase(current)), current);
+  assert.equal(needsDatabaseSettingsUpgrade(settingsForDatabase(current), current), false);
   assert.deepEqual(settingsForDatabase(current), { ...current, roundCount: 7, durationSeconds: 35,
     gameOptions: legacy.gameOptions });
   assert.equal(parseMatchSettings({ ...legacy, roundCount: 11 }), null);

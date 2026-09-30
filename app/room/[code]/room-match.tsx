@@ -24,6 +24,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
   const match = snapshot.match!;
   const view = roomGameViews[match.gameId];
   const Round = view.Round;
+  const CountdownArt = view.CountdownArt;
   const gameTitle = gameCatalog.find((game) => game.id === match.gameId)?.name ?? match.gameId;
   const options = gameOptionsFor(match.settings, match.gameId);
   const isHost = snapshot.room.host_id === snapshot.currentPlayerId;
@@ -42,7 +43,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
   const serverNow = now + (Number.isFinite(offset) ? offset : 0);
   const startTime = Date.parse(match.startsAt);
   const deadline = Date.parse(match.deadline);
-  const countdown = Math.max(0, Math.ceil((startTime - serverNow) / 1000));
+  const countdown = Math.min(3, Math.max(0, Math.ceil((startTime - serverNow) / 1000)));
   const seconds = Math.max(0, Math.ceil((deadline - serverNow) / 1000));
 
   useEffect(() => {
@@ -152,11 +153,16 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
     {error && <p className={styles.error} role="alert">{error}<button className={styles.retryButton} onClick={() => void refresh()}>Refresh room</button></p>}
 
     {match.phase === "playing" && countdown > 0 && <>
-      <RoundHeading eyebrow="SAME SHAPE. SAME MOMENT." title="Get your eyes ready." description={`Round ${match.roundIndex + 1} is about to begin.`} />
+      <RoundHeading eyebrow="SAME ROUND. SAME MOMENT." title="Get your eyes ready." description={`Round ${match.roundIndex + 1} is about to begin.`} />
       <div className={styles.countdownPanel} role="status" aria-live="polite">
-        <span className={styles.countdownSpark} aria-hidden="true">✦</span>
-        <strong key={countdown} className={styles.countdownNumber}>{countdown}</strong>
-        <span className={styles.countdownSpark} aria-hidden="true">✦</span>
+        <span className={styles.countdownEyebrow}>{view.countdownLabel ?? "READY TO PLAY"}</span>
+        <div className={styles.countdownStage}>
+          {CountdownArt ? <CountdownArt count={countdown} />
+            : <strong key={countdown} className={styles.countdownFallback}>{countdown}</strong>}
+        </div>
+        <div className={styles.countdownSteps} aria-hidden="true">
+          {[3, 2, 1].map((step) => <i key={step} data-current={step === countdown} data-done={step > countdown} />)}
+        </div>
         <p>Everyone starts together!</p>
       </div>
     </>}

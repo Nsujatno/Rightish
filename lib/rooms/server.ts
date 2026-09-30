@@ -75,6 +75,7 @@ export async function roomRpc<T>(name: string, parameters: Record<string, unknow
     if (error.code === "PGRST202" || error.code === "42P01") {
       throw new RoomError(503, "DATABASE_NOT_READY", "The room database isn’t ready yet. Apply the latest Supabase SQL migration.");
     }
+    console.error("Room RPC failed", { name, code: error.code, message: error.message });
     throw new RoomError(503, "CONNECTION_UNAVAILABLE", "We couldn’t reach the room. Try again in a moment.");
   }
   return data as T;
