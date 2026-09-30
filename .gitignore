@@ -43,3 +43,6 @@ next-env.d.ts
 
 # supabase
 supabase/migrations/
+
+# devlog
+DEVLOG.md

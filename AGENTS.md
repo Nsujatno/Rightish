@@ -10,3 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 development plan is in @PLAN.md.
 before starting a big session verify with me exactly what I want from this session.
+
+previous devlogs are in @DEVLOG.md
+use these to determine what has been built previously, what needs to be built next.
+after you finish a session write a concise snippet explaining what was implemented in this session

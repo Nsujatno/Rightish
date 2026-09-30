@@ -201,3 +201,4 @@
 }
 .formError { color: #98443b; font-weight: 700; line-height: 1.5; }
 .submitButton:disabled, .closeButton:disabled { cursor: wait; opacity: .65; }
+.practiceLink { text-decoration: none; }

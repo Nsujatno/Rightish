@@ -1,6 +1,6 @@
 ﻿# Rightish
 
-A party game for your perfectly imperfect brain. The landing page and multiplayer lobby are implemented; playable rounds are next.
+A party game for your perfectly imperfect brain. The landing page, multiplayer lobby, and procedural Split It solo prototype are implemented. Synchronized room rounds are next.
 
 ## Local development
 
@@ -29,9 +29,23 @@ The Supabase SQL history, migration order, and required dashboard settings are d
 
 Use two separate browser profiles to try multiplayer. Two tabs in one profile represent the same player.
 
+## Split It solo practice
+
+Open `/play/split-it`, or select Split It on the landing page and choose **Try Split It**.
+
+- Five rounds, 20 seconds each. Click/tap to place two anchors; drag either to adjust the straight cut.
+- Confirm locks the attempt. The deadline submits the latest valid cut, or zero if there is none.
+- Accuracy only: 50/50 earns 1,000 points; 60/40 earns 800; 75/25 earns 500.
+- Reveal shows percentages, separated pieces, points, and a perfect line parallel to the attempt. Next shape waits for the player.
+- Replay the same set or copy a link for a friend to try those shapes independently.
+- Shared generation/validation/scoring lives in `lib/games`; UI lives in `app/components/games`. The game registry supports future host-selected pools.
+
+See [the Split It design](docs/split-it.md) for multiplayer decisions and outstanding playtests.
+
 ## Checks
 
 ```bash
 npm run lint
+npm run test:games
 npm run build
 ```

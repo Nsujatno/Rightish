@@ -1,51 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { enterRoom } from "@/lib/rooms/client";
+import { readSetting, saveSetting, useSetting, useMotionPreference } from "@/lib/preferences/client";
 import { Doodles, Illustration, type GameArt } from "./art";
 import styles from "./landing.module.css";
 
 type Modal = "host" | "join" | "how" | GameArt | null;
 const games: { kind: GameArt; name: string; subtitle: string; description: string }[] = [
-  { kind: "split", name: "Split It", subtitle: "Two halves. One wild guess.", description: "Swipe through a wobbly shape and try to split it into two equal halves. Adjust your cut until you’re happy, then lock it in. The closer to 50/50, the better!" },
+  { kind: "split", name: "Split It", subtitle: "Two halves. One wild guess.", description: "Place two anchors to cut a wobbly shape into two equal halves. Drag either point until you’re happy, then lock it in. The closer to 50/50, the better!" },
   { kind: "grid", name: "Flash Grid", subtitle: "Now you see it. Now you don’t.", description: "A few squares light up for a moment, then disappear. Pick the squares you remember seeing. Your memory is probably great… right?" },
   { kind: "clock", name: "Internal Clock", subtitle: "Time flies. Can you catch it?", description: "Start a hidden timer, then stop it when you think the target time has passed. No clock to watch. Just you and your surprisingly questionable sense of time." },
   { kind: "mirror", name: "Mirror Me", subtitle: "Same same. But the other way.", description: "An object sits on one side of a mirror line. Drag its twin to the exact reflected position on the other side. Looks right? Let’s find out." },
 ];
-
-const memory = new Map<string, string>();
-function readSetting(key: string) {
-  try { return localStorage.getItem(`rightish:${key}`); }
-  catch { return memory.get(key) ?? null; }
-}
-function saveSetting(key: string, value: string) {
-  memory.set(key, value);
-  try { localStorage.setItem(`rightish:${key}`, value); } catch { /* Preferences still work for this visit. */ }
-  window.dispatchEvent(new Event("rightish:preferences"));
-}
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  window.addEventListener("rightish:preferences", callback);
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener("rightish:preferences", callback);
-  };
-}
-function useSetting(key: string) {
-  return useSyncExternalStore(subscribe, () => readSetting(key), () => null);
-}
-
-const motionQuery = "(prefers-reduced-motion: reduce)";
-function subscribeReducedMotion(callback: () => void) {
-  const query = window.matchMedia(motionQuery);
-  query.addEventListener("change", callback);
-  return () => query.removeEventListener("change", callback);
-}
-function getReducedMotion() {
-  return window.matchMedia(motionQuery).matches;
-}
 
 function Icon({ kind }: { kind: "plus" | "arrow" | "sound" | "mute" | "motion" | "play" | "help" | "close" }) {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -69,9 +38,7 @@ export default function Landing() {
   const router = useRouter();
   const activeRoom = useSetting("activeRoom");
   const sound = useSetting("sound") === "true";
-  const motionSetting = useSetting("paused");
-  const reducedMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
-  const paused = motionSetting === null ? reducedMotion : motionSetting === "true";
+  const { paused, motion } = useMotionPreference();
   const dialog = useRef<HTMLDialogElement>(null);
   const audio = useRef<AudioContext | null>(null);
   const game = games.find((item) => item.kind === modal);
@@ -128,7 +95,7 @@ export default function Landing() {
     }
   }
 
-  return <div className={styles.page} data-paused={paused} data-motion={motionSetting === "false" ? "on" : "auto"}>
+  return <div className={styles.page} data-paused={paused} data-motion={motion}>
     <a className={styles.skipLink} href="#main">Skip to main content</a>
     <header className={styles.header}>
       <Link className={styles.wordmark} href="/" aria-label="Rightish home">right<span>ish</span><i>.</i></Link>
@@ -185,8 +152,8 @@ export default function Landing() {
         <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Got it <Icon kind="arrow" /></button>
       </> : game ? <>
         <div className={`${styles.modalArt} ${styles[game.kind]}`}><Illustration kind={game.kind} /></div>
-        <span className={styles.modalEyebrow}>ON THE WAY</span><h2 id="dialog-title">{game.name}</h2><p className={styles.modalDescription}>{game.description}</p>
-        <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Sounds about right <Icon kind="arrow" /></button>
+        <span className={styles.modalEyebrow}>{game.kind === "split" ? "TRY SOLO PRACTICE" : "ON THE WAY"}</span><h2 id="dialog-title">{game.name}</h2><p className={styles.modalDescription}>{game.description}</p>
+        {game.kind === "split" ? <Link className={`${styles.submitButton} ${styles.practiceLink}`} href="/play/split-it">Try Split It <Icon kind="arrow" /></Link> : <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Sounds about right <Icon kind="arrow" /></button>}
       </> : modal === "host" || modal === "join" ? <>
         <span className={styles.modalEyebrow}>LET’S GET YOU READY</span>
         <h2 id="dialog-title">{modal === "host" ? "Your party starts here." : "Come on in."}</h2>
