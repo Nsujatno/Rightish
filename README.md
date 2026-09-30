@@ -14,10 +14,6 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 SUPABASE_SECRET_KEY=your-server-secret-key
 ```
 
-The secret key stays on the server. Never give it a `NEXT_PUBLIC_` prefix. Restart the dev server after changing these values.
-
-The Supabase SQL history, migration order, and required dashboard settings are documented in [supabase/migrations/README.md](supabase/migrations/README.md).
-
 ## Lobby behavior
 
 - Host creates a room with a six-character code and a player nickname.
