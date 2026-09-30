@@ -6,6 +6,10 @@ import { getBrowserSupabase, getGuestSession } from "@/lib/supabase/browser";
 import { forgetRoom, readRoom, rememberRoom, RoomRequestError } from "./client";
 import type { RoomSnapshot } from "./types";
 
+function received(snapshot: RoomSnapshot): RoomSnapshot {
+  return { ...snapshot, clientReceivedAt: Date.now() };
+}
+
 export function useLobby(code: string) {
   const [snapshot, setSnapshot] = useState<RoomSnapshot | null>(null);
   const [error, setError] = useState<{ message: string; code: string } | null>(null);
@@ -49,7 +53,7 @@ export function useLobby(code: string) {
             if (!alive) return;
             // Do not overwrite a newer ready/leave action with an older GET.
             if (beforeRequest === revision.current) {
-              setSnapshot(next);
+              setSnapshot(received(next));
               rememberRoom(next);
               setError(null);
             }
@@ -64,7 +68,7 @@ export function useLobby(code: string) {
         if (!alive) return;
         const initial = await readRoom(code, abort.signal);
         if (!alive) return;
-        setSnapshot(initial);
+        setSnapshot(received(initial));
         rememberRoom(initial);
         // Keep snapshots recovering even if the initial socket setup fails.
         poll = setInterval(() => { void refresh(); }, 15_000);
@@ -127,7 +131,7 @@ export function useLobby(code: string) {
 
   function update(next: RoomSnapshot) {
     revision.current += 1;
-    setSnapshot(next);
+    setSnapshot(received(next));
     rememberRoom(next);
     setError(null);
   }

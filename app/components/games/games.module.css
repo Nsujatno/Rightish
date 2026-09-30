@@ -7,6 +7,8 @@
 .practiceLabel i { width: 6px; height: 6px; border-radius: 50%; background: #859e73; }
 .backLink { font-size: 12px; font-weight: 800; color: #6e7865; text-decoration: none; }
 .backLink:hover { text-decoration: underline; }
+.backLinkButton { border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 800; color: #6e7865; cursor: pointer; }
+.backLinkButton:hover { text-decoration: underline; }
 .main { max-width: 1080px; margin: auto; padding: 8px 36px 30px; }
 .matchBar { padding: 17px 0; border-block: 1px solid #e8e1d1; display: flex; justify-content: space-between; align-items: center; color: #78806d; font-size: 10px; font-weight: 800; letter-spacing: .6px; }
 .matchBar strong { color: #4c5745; font-size: 13px; }

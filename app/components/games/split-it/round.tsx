@@ -25,11 +25,11 @@ function Anchor({ point, label, endpoint, preview = false }: {
   </g>;
 }
 
-export function SplitItRound({ challenge, onAnswerChange, onConfirm }: RoundViewProps<SplitItChallenge, Cut>) {
+export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPercent = 50, initialAnswer = null }: RoundViewProps<SplitItChallenge, Cut> & { targetPercent?: number; initialAnswer?: Cut | null }) {
   // A second anchor establishes the answer; aiming alone never replaces it.
   // Valid handle movements update it live for timeouts. Cancelling restores the
   // cut from before the drag.
-  const [cut, setCut] = useState<Cut | null>(null);
+  const [cut, setCut] = useState<Cut | null>(initialAnswer);
   const [firstAnchor, setFirstAnchor] = useState<Point | null>(null);
   const [draft, setDraft] = useState<Cut | null>(null);
   const [drawing, setDrawing] = useState(false);
@@ -188,7 +188,7 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm }: RoundView
           <Anchor point={firstAnchor} label="1" endpoint="first" />
         </> : shownCut && <><Anchor point={shownCut.a} label="1" endpoint="a" /><Anchor point={shownCut.b} label="2" endpoint="b" /></>}
       </svg>
-      <span className={styles.boardBadge}>50 / 50 ?</span>
+      <span className={styles.boardBadge}>{targetPercent} / {100 - targetPercent} ?</span>
     </div>
     <p className={styles.feedback} role="status">{message}</p>
     <div className={styles.controls}>

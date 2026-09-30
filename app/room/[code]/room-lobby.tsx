@@ -7,6 +7,11 @@ import { Illustration } from "@/app/components/art";
 import { enterRoom, forgetRoom, roomRequest } from "@/lib/rooms/client";
 import type { RoomSnapshot } from "@/lib/rooms/types";
 import { useLobby } from "@/lib/rooms/use-lobby";
+import { defaultMatchSettings, type GameId } from "@/lib/games/registry";
+import { hasPerGameSettings, parseMatchSettings } from "@/lib/games/settings";
+import type { MatchSettings } from "@/lib/games/types";
+import { HostSettings } from "./host-settings";
+import { RoomMatch } from "./room-match";
 import landing from "@/app/components/landing.module.css";
 import styles from "./room.module.css";
 
@@ -19,7 +24,7 @@ export default function RoomLobby({ code }: { code: string }) {
   const lobby = useLobby(code);
   const router = useRouter();
   const [name, setName] = useState("");
-  const [busy, setBusy] = useState<"join" | "ready" | "leave" | null>(null);
+  const [busy, setBusy] = useState<"join" | "ready" | "leave" | "settings" | "start" | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const acting = useRef(false);
@@ -67,6 +72,34 @@ export default function RoomLobby({ code }: { code: string }) {
     finally { acting.current = false; setBusy(null); }
   }
 
+  async function saveSettings(settings: MatchSettings<GameId>) {
+    if (acting.current) return;
+    acting.current = true;
+    setBusy("settings");
+    setActionError(null);
+    try {
+      const response = await roomRequest<{ snapshot: RoomSnapshot }>(`/api/rooms/${code}/settings`, {
+        method: "PATCH", body: JSON.stringify({ settings }),
+      });
+      lobby.update(response.snapshot);
+    } catch (error) { setActionError(error instanceof Error ? error.message : "Those settings didn’t save. Try again."); }
+    finally { acting.current = false; setBusy(null); }
+  }
+
+  async function startMatch() {
+    if (acting.current) return;
+    acting.current = true;
+    setBusy("start");
+    setActionError(null);
+    try {
+      const response = await roomRequest<{ snapshot: RoomSnapshot }>(`/api/rooms/${code}/match`, {
+        method: "POST", body: JSON.stringify({ action: "start" }),
+      });
+      lobby.update(response.snapshot);
+    } catch (error) { setActionError(error instanceof Error ? error.message : "The match couldn’t start. Try again."); }
+    finally { acting.current = false; setBusy(null); }
+  }
+
   async function copyCode() {
     try {
       if (!navigator.clipboard) throw new Error("Clipboard unavailable");
@@ -76,6 +109,18 @@ export default function RoomLobby({ code }: { code: string }) {
   }
 
   const readyCount = snapshot?.players.filter((player) => player.is_ready).length ?? 0;
+  const parsedSettings = snapshot ? parseMatchSettings(snapshot.room.settings) : null;
+  const settingsNeedSave = !!snapshot && (!parsedSettings || !hasPerGameSettings(snapshot.room.settings));
+  if (snapshot?.match && snapshot.room.status !== "lobby") {
+    const matchSettings = parseMatchSettings(snapshot.match.settings);
+    if (!matchSettings) return <div className={styles.page}><main className={styles.main}>
+      <p className={styles.error} role="alert">This match’s settings couldn’t be loaded. Try reconnecting to the room.</p>
+      <button className={styles.softButton} onClick={lobby.retry}>Reconnect</button>
+    </main></div>;
+    return <RoomMatch key={`${snapshot.match.id}:${snapshot.match.roundIndex}`} code={code}
+      snapshot={{ ...snapshot, match: { ...snapshot.match, settings: matchSettings } }}
+      onSnapshot={lobby.update} onLeave={leave} />;
+  }
   return <div className={styles.page}>
     <a className={landing.skipLink} href="#lobby-main">Skip to lobby</a>
     <header className={`${landing.header} ${styles.header}`}>
@@ -134,7 +179,11 @@ export default function RoomLobby({ code }: { code: string }) {
             <div className={styles.readyBar}><p>{me?.is_ready ? "Confidence: questionable. Ready: absolutely." : "Got your guessing brain on?"}<small>Your spot stays saved if you refresh or disconnect.</small></p><button className={me?.is_ready ? styles.softButton : styles.greenButton} aria-pressed={!!me?.is_ready} disabled={!!busy || !me || snapshot.room.status !== "lobby"} onClick={() => void setReady()}>{busy === "ready" ? "One sec…" : me?.is_ready ? "Not ready yet" : "I’m ready"}</button></div>
           </section>
         </div>
-        <div className={styles.lobbyFooter}><div className={styles.hostNote}><span aria-hidden="true">✦</span><p>{isHost ? "You’re the host. Assemble your almost-right crew." : `${host?.nickname ?? "Your friend"} is hosting this one.`}<small>The lobby is live. Synchronized rounds are the next step.</small></p></div><button className={styles.leaveButton} disabled={!!busy} onClick={() => void leave()}>{busy === "leave" ? "Leaving…" : "Leave room"} <span aria-hidden="true">↗</span></button></div>
+        <HostSettings key={JSON.stringify(snapshot.room.settings)} settings={parsedSettings ?? defaultMatchSettings}
+          needsSave={settingsNeedSave}
+          isHost={isHost} playerCount={snapshot.players.length} allReady={readyCount === snapshot.players.length}
+          onSave={saveSettings} onStart={startMatch} />
+        <div className={styles.lobbyFooter}><div className={styles.hostNote}><span aria-hidden="true">✦</span><p>{isHost ? "You’re the host. Assemble your almost-right crew." : `${host?.nickname ?? "Your friend"} is hosting this one.`}<small>Set the match, get ready, and let the questionable estimates begin.</small></p></div><button className={styles.leaveButton} disabled={!!busy} onClick={() => void leave()}>{busy === "leave" ? "Leaving…" : "Leave room"} <span aria-hidden="true">↗</span></button></div>
       </>}
     </main>
     <footer className={styles.footer}>Made for the “one more round” kind of friends.</footer>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { defaultMatchSettings, gameRegistry } from "@/lib/games/registry";
+import { gameRegistry } from "@/lib/games/registry";
 import { formatSplit } from "@/lib/games/split-it/format";
 import { isPerfectSplit } from "@/lib/games/split-it";
 import { Celebration } from "./celebration";
@@ -14,7 +14,7 @@ import { SplitItReveal } from "./split-it/reveal";
 import styles from "./games.module.css";
 
 const game = gameRegistry["split-it"];
-const settings = defaultMatchSettings;
+const settings = { roundCount: game.defaultRoundCount, durationSeconds: game.defaultDurationSeconds };
 
 export default function SoloSplitIt({ initialSeed }: { initialSeed?: string }) {
   const match = useSoloMatch(game, settings, initialSeed);

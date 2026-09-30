@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { roundSeed } from "@/lib/games/random";
-import type { GameDefinition, MatchSettings, ScoredResult } from "@/lib/games/types";
+import type { GameDefinition, GameMatchSettings, ScoredResult } from "@/lib/games/types";
 
 export type SoloRound<Challenge, Result> = { challenge: Challenge; result: Result; roundIndex: number };
 type SoloState<Challenge, Result> = {
@@ -14,9 +14,9 @@ type SoloState<Challenge, Result> = {
   rounds: SoloRound<Challenge, Result>[];
 };
 
-export function useSoloMatch<Challenge, Answer, Result extends ScoredResult>(
-  game: GameDefinition<Challenge, Answer, Result>,
-  settings: MatchSettings,
+export function useSoloMatch<Challenge, Answer, Result extends ScoredResult, Options>(
+  game: GameDefinition<Challenge, Answer, Result, Options>,
+  settings: Pick<GameMatchSettings, "roundCount" | "durationSeconds">,
   initialSeed?: string,
 ) {
   const [state, setState] = useState<SoloState<Challenge, Result>>(() => ({

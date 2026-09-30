@@ -50,7 +50,7 @@ export function cutFractions(points: readonly Point[], cut: Cut): [number, numbe
   return [fraction, 1 - fraction];
 }
 
-export function bisectAtAngle(points: readonly Point[], cut: Cut): Cut {
+export function cutAtFraction(points: readonly Point[], cut: Cut, fraction: number): Cut {
   const length = Math.hypot(cut.b.x - cut.a.x, cut.b.y - cut.a.y);
   const direction = { x: (cut.b.x - cut.a.x) / length, y: (cut.b.y - cut.a.y) / length };
   const normal = { x: -direction.y, y: direction.x };
@@ -66,10 +66,14 @@ export function bisectAtAngle(points: readonly Point[], cut: Cut): Cut {
   };
   for (let iteration = 0; iteration < 48; iteration++) {
     const middle = (low + high) / 2;
-    if (cutFractions(points, at(middle))[0] > 0.5) low = middle;
+    if (cutFractions(points, at(middle))[0] > fraction) low = middle;
     else high = middle;
   }
   return at((low + high) / 2);
+}
+
+export function bisectAtAngle(points: readonly Point[], cut: Cut): Cut {
+  return cutAtFraction(points, cut, 0.5);
 }
 
 export function extendCut(cut: Cut): Cut {

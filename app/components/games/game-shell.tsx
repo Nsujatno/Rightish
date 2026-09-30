@@ -5,16 +5,18 @@ import type { ReactNode } from "react";
 import { useMotionPreference } from "@/lib/preferences/client";
 import styles from "./games.module.css";
 
-export function GameShell({ children, round, roundCount, totalScore }: {
+export function GameShell({ children, round, roundCount, totalScore, roomCode, onLeave }: {
   children: ReactNode; round: number; roundCount: number; totalScore: number;
+  roomCode?: string; onLeave?: () => void;
 }) {
   const { paused, motion } = useMotionPreference();
   return <div className={styles.page} data-paused={paused} data-motion={motion}>
     <a className={styles.skipLink} href="#game-main">Skip to game</a>
     <header className={styles.header}>
       <Link className={styles.wordmark} href="/" aria-label="Rightish home">right<span>ish</span><i>.</i></Link>
-      <span className={styles.practiceLabel}><i /> Solo practice</span>
-      <Link className={styles.backLink} href="/">Back home ↗</Link>
+      <span className={styles.practiceLabel}><i /> {roomCode ? `Room ${roomCode}` : "Solo practice"}</span>
+      {onLeave ? <button className={styles.backLinkButton} type="button" onClick={onLeave}>Leave room ↗</button>
+        : <Link className={styles.backLink} href="/">Back home ↗</Link>}
     </header>
     <main id="game-main" className={styles.main}>
       <div className={styles.matchBar}>

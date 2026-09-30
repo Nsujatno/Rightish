@@ -14,9 +14,10 @@ require.extensions[".ts"] = (module, filename) => {
 };
 
 const { generateShape } = require("../lib/games/split-it/generator.ts");
-const { splitIt, isPerfectSplit } = require("../lib/games/split-it/index.ts");
+const { splitIt, isPerfectSplit, isPerfectTarget, isSplitItOptions } = require("../lib/games/split-it/index.ts");
 const { polygonArea, clipPolygon, cutFractions, bisectAtAngle } = require("../lib/games/split-it/geometry.ts");
-const { selectGame } = require("../lib/games/registry.ts");
+const { selectGame, matchRoundCount, roundSchedule } = require("../lib/games/registry.ts");
+const { parseMatchSettings, gameOptionsFor, gameSettingsFor, hasPerGameSettings, settingsForDatabase } = require("../lib/games/settings.ts");
 const { roundSeed } = require("../lib/games/random.ts");
 const { resolveMotionPreference } = require("../lib/preferences/motion.ts");
 
@@ -42,6 +43,20 @@ test("analytic areas and accuracy-only scores", () => {
   assert.equal(splitIt.score(challenge(square), horizontal(0.42)).score, 800);
   assert.equal(splitIt.score(challenge(square), horizontal(0.3)).score, 500);
   assert.equal(splitIt.score(challenge(square), { a: { x: 0, y: 0 }, b: { x: 1, y: 1 } }).score, 1000);
+});
+
+test("custom targets accept either side and score relative to the smaller requested piece", () => {
+  const eighty = { targetPercent: 80 };
+  const result = splitIt.score(challenge(square), horizontal(0.26), eighty);
+  assert.equal(result.score, 1000);
+  close(Math.min(...cutFractions(square, result.perfectCut)), 0.2);
+  assert.equal(splitIt.score(challenge(square), horizontal(0.74), eighty).score, 1000);
+  assert.equal(splitIt.score(challenge(square), horizontal(0.30), eighty).score, 750);
+  assert.equal(splitIt.score(challenge(square), horizontal(0.42), eighty).score, 0);
+  assert.equal(isPerfectTarget(splitIt.score(challenge(square), horizontal(0.26), eighty).fractions, 80), true);
+  assert.equal(isSplitItOptions({ targetPercent: 80 }), true);
+  assert.equal(isSplitItOptions({ targetPercent: 85 }), false);
+  assert.equal(isSplitItOptions({ targetPercent: 62 }), false);
 });
 
 test("a concave cut can create multiple fragments on one side and still score their combined area", () => {
@@ -131,8 +146,54 @@ test("generated outlines have no self-crossings", () => {
 test("match seeds reproduce rounds and game selection respects the enabled list", () => {
   assert.equal(roundSeed("friends", 2), roundSeed("friends", 2));
   assert.notDeepEqual(generateShape(roundSeed("friends", 1)).points, generateShape(roundSeed("friends", 2)).points);
-  assert.equal(selectGame(["split-it", "split-it"], "friends"), "split-it");
-  assert.equal(selectGame(["unimplemented", "split-it"], "friends"), "split-it");
-  assert.throws(() => selectGame([], "friends"), /at least one playable minigame/);
-  assert.throws(() => selectGame(["unimplemented"], "friends"), /at least one playable minigame/);
+  const settings = { enabledGameIds: ["split-it"], gameSettings: {
+    "split-it": { roundCount: 3, durationSeconds: 20, options: { targetPercent: 50 } },
+  } };
+  assert.equal(matchRoundCount(settings), 3);
+  for (let round = 0; round < 3; round++) assert.equal(selectGame(settings, round), "split-it");
+  assert.deepEqual(roundSchedule(["split-it", "future-game"], { "split-it": 2, "future-game": 3 }),
+    ["split-it", "future-game", "split-it", "future-game", "future-game"]);
+  assert.throws(() => selectGame(settings, 3), /No game configured/);
+  assert.throws(() => selectGame({ enabledGameIds: [], gameSettings: {} }, 0), /at least one playable minigame/);
+});
+
+test("host settings accept only playable games, valid timers, and valid game options", () => {
+  const settings = {
+    enabledGameIds: ["split-it"], gameSettings: {
+      "split-it": { roundCount: 10, durationSeconds: 5, options: { targetPercent: 80 } },
+    },
+  };
+  assert.deepEqual(parseMatchSettings(settings), settings);
+  assert.deepEqual(gameOptionsFor(settings, "split-it"), { targetPercent: 80 });
+  assert.deepEqual(gameSettingsFor(settings, "split-it"), settings.gameSettings["split-it"]);
+  const invalidSplitIt = (change) => ({ ...settings, gameSettings: {
+    "split-it": { ...settings.gameSettings["split-it"], ...change },
+  } });
+  for (const invalid of [
+    invalidSplitIt({ roundCount: 0 }), invalidSplitIt({ roundCount: 11 }),
+    invalidSplitIt({ durationSeconds: 4 }), invalidSplitIt({ durationSeconds: 61 }),
+    { ...settings, enabledGameIds: [] },
+    { ...settings, enabledGameIds: ["unimplemented"] },
+    { ...settings, enabledGameIds: ["split-it", "split-it"] },
+    invalidSplitIt({ options: { targetPercent: 85 } }),
+  ]) assert.equal(parseMatchSettings(invalid), null);
+});
+
+test("saved rooms with the original settings shape upgrade without losing host choices", () => {
+  const legacy = {
+    enabledGameIds: ["split-it"], roundCount: 7, durationSeconds: 35,
+    gameOptions: { "split-it": { targetPercent: 70 } },
+  };
+  const current = {
+    enabledGameIds: ["split-it"], gameSettings: {
+      "split-it": { roundCount: 7, durationSeconds: 35, options: { targetPercent: 70 } },
+    },
+  };
+  assert.equal(hasPerGameSettings(legacy), false);
+  assert.deepEqual(parseMatchSettings(legacy), current);
+  assert.equal(hasPerGameSettings(current), true);
+  assert.deepEqual(parseMatchSettings(settingsForDatabase(current)), current);
+  assert.deepEqual(settingsForDatabase(current), { ...current, roundCount: 7, durationSeconds: 35,
+    gameOptions: legacy.gameOptions });
+  assert.equal(parseMatchSettings({ ...legacy, roundCount: 11 }), null);
 });

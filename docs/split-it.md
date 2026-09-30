@@ -32,7 +32,13 @@ future recipes can coexist with reproducible older challenges.
 - Keyboard alternative: arrows move the line; Q/E rotate; Shift makes smaller
   movements; Enter confirms; Escape resets.
 
-Accuracy only, with no speed bonus:
+Accuracy only, with no speed bonus. The default target remains 50/50. A room host
+can choose 50/50 through 80/20 in five-point steps; either side may be larger.
+For a target `T`, the room score is:
+
+`score = max(0, round(1000 × (1 − |smallerAreaFraction − (100 − T)/100| / ((100 − T)/100))))`
+
+At 50/50 this is the original rule:
 
 `score = round(1000 × (1 − |leftArea − rightArea| / totalArea))`
 
@@ -52,8 +58,8 @@ passes before revealing any scores. Show four result cards with names, cuts on
 the shared shape, percentages, and round points. Highlight the current player.
 Selecting a card expands that attempt and its comparison.
 
-Separate the pieces slightly, then allow a comparison against a perfect 50/50
-cut at the player's own angle. There is no single unique perfect cut. Show total
+Separate the pieces slightly, then allow a comparison against the selected target
+at the player's own angle. There is no single unique perfect cut. Show total
 scores and rank changes, with equal scores sharing a rank. The host decides when
 to continue so friends have time to react. Solo uses Next shape instead.
 
@@ -63,8 +69,8 @@ it does not invent opponents or imply a synchronized room match.
 ## Shared minigame structure
 
 `lib/games/types.ts` defines game metadata, seeded generation, answer validation,
-scoring, match settings, and result records. `lib/games/registry.ts` lists playable
-games and supports seeded selection from an enabled pool. Each game owns its
+scoring, per-game match settings, and result records. `lib/games/registry.ts` lists playable
+games and interleaves each enabled game's configured rounds. Each game owns its
 domain rules and its input/reveal components. Match timers, progression, result
 cards, and standings belong to the shared shell.
 
@@ -72,7 +78,9 @@ Solo runs the pure rules locally. Multiplayer must score the same rules on the
 server, receive only normalized input, and own the seed, deadline, submissions,
 round completion, totals, and host-only progression. Broadcast authoritative
 challenge geometry alongside its seed/version to avoid client generator drift.
-Host configuration can later expose enabled games, duration, and round count.
+Host configuration now exposes enabled games, with duration, round count, and target
+inside Split It's settings panel. A registered game supplies its own rules and settings; the room engine
+owns the countdown, deadline, answer storage, server scoring, reveal, and standings.
 
 ## Current status and remaining validation
 
@@ -89,5 +97,7 @@ are also required.
 Before calling the solo interaction finished, playtest anchor placement and
 dragging with mouse, touch, and keyboard, especially pointer cancellation,
 invalid moves, and the deadline during adjustment. Browser automation was not
-connected in this development session. Multiplayer integration and room-level
-disconnect/reconnect tests are still pending.
+connected in this development session. Multiplayer integration is implemented in
+code and migration 005, which must be applied to Supabase before room matches work.
+Room-level browser playtests for simultaneous players, refreshes, disconnects, and
+timeouts are still pending.

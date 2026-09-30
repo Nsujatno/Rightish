@@ -16,6 +16,15 @@ const databaseErrors: Record<string, [number, string]> = {
   INVALID_READY_STATE: [400, "That ready status wasn’t understood. Try again."],
   NOT_AUTHENTICATED: [401, "Your player session couldn’t be verified. Refresh and try again."],
   ROOM_CODE_UNAVAILABLE: [503, "We couldn’t find a free room code. Please try again."],
+  NOT_HOST: [403, "Only the host can do that."],
+  INVALID_SETTINGS: [400, "Those match settings weren’t understood."],
+  PLAYERS_NOT_READY: [409, "At least two players must be here and everyone must be ready."],
+  INVALID_ROUND: [400, "That round couldn’t be started."],
+  ROUND_CLOSED: [409, "That round has already ended. Results are on their way."],
+  ROUND_NOT_STARTED: [409, "Wait for the countdown before cutting."],
+  ROUND_NOT_READY: [409, "The round is still going. Wait for the reveal."],
+  INVALID_ANSWER: [400, "That cut couldn’t be scored. Try placing it again."],
+  ALREADY_CONFIRMED: [409, "Your cut is already locked in."],
 };
 
 export function nickname(value: unknown) {
@@ -64,7 +73,7 @@ export async function roomRpc<T>(name: string, parameters: Record<string, unknow
     const known = databaseErrors[error.message];
     if (known) throw new RoomError(known[0], error.message, known[1]);
     if (error.code === "PGRST202" || error.code === "42P01") {
-      throw new RoomError(503, "DATABASE_NOT_READY", "The room database isn’t ready yet. Run the lobby setup SQL in Supabase.");
+      throw new RoomError(503, "DATABASE_NOT_READY", "The room database isn’t ready yet. Apply the latest Supabase SQL migration.");
     }
     throw new RoomError(503, "CONNECTION_UNAVAILABLE", "We couldn’t reach the room. Try again in a moment.");
   }
