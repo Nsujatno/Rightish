@@ -1,6 +1,6 @@
 ﻿# Rightish
 
-A party game for your perfectly imperfect brain. The landing page, live rooms, procedural Split It practice, and synchronized Split It matches are implemented.
+A party game for your perfectly imperfect brain. The landing page, live rooms, solo Split It and Flash Grid practice, and synchronized room matches for both games are implemented.
 
 ## Local development
 
@@ -41,6 +41,16 @@ Open `/play/split-it`, or select Split It on the landing page and choose **Try S
 - Shared generation/validation/scoring lives in `lib/games`; UI lives in `app/components/games`. The game registry supports future host-selected pools.
 
 See [the Split It design](docs/split-it.md) for multiplayer decisions and outstanding playtests.
+
+## Flash Grid solo practice
+
+Open `/play/flash-grid`, or select Flash Grid on the landing page and choose **Try Flash Grid**.
+
+- Five rounds grow from 3×3 to 7×7, with 3, 5, 7, 9, then 11 lit squares.
+- Study each pattern for three seconds. The tiles flip over, then you have 20 seconds to tap remembered squares. Tap again to undo; submit early or let the timer finish.
+- Each correct pick adds an equal share of 1,000 points. Each extra pick removes that share, with a floor of zero. The reveal distinguishes found, missed, and extra squares.
+- Replay the same patterns or copy a seeded challenge link for a friend.
+- In rooms, the host can enable Flash Grid for 1–10 rounds and choose each round’s grid size (3×3–7×7), study time (1–15 seconds), and choice time (5–60 seconds).
 
 ## Checks
 

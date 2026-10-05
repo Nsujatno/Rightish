@@ -8,21 +8,28 @@ import { formatSplit } from "@/lib/games/split-it/format";
 import type { ScoredResult } from "@/lib/games/types";
 import { ShapePreview } from "./split-it/shape";
 import { SplitItCountdown } from "./split-it/countdown";
+import { FlashGridCountdown } from "./flash-grid-countdown";
 import { SplitItRound } from "./split-it/round";
 import { SplitItReveal } from "./split-it/reveal";
+import { FlashGridRoomRound, FlashGridRoomReveal } from "./flash-grid-room";
+import { scoreFlashGrid, type FlashGridChallenge, type FlashGridResult } from "@/lib/games/flash-grid";
+import { FlashGridBoard } from "./solo-flash-grid";
 
 export type RoomGameView = {
   prompt: (options: unknown) => string;
   CountdownArt?: ComponentType<{ count: number }>;
   countdownLabel?: string;
   Round: ComponentType<{ challenge: unknown; options: unknown; initialAnswer: unknown;
-    onAnswerChange: (value: unknown | null) => void; onConfirm: () => void }>;
+    onAnswerChange: (value: unknown | null) => void; onConfirm: () => void; serverNow: number; startsAt: string }>;
+  heading?: (challenge: unknown, serverNow: number, startsAt: string) => { eyebrow: string; title: string; description: string; seconds: number };
   result: (challenge: unknown, value: unknown, options: unknown) => ScoredResult;
   preview: (challenge: unknown, result: ScoredResult) => ReactNode;
+  waitingPreview?: (challenge: unknown) => ReactNode;
   summary: (result: ScoredResult) => string;
   detail: (challenge: unknown, result: ScoredResult, nickname: string, options: unknown) => ReactNode;
   exact: (result: ScoredResult, options: unknown) => boolean;
   exactBadge: (options: unknown) => string;
+  exactMessage?: string;
 };
 
 function splitOptions(value: unknown): SplitItOptions {
@@ -65,8 +72,53 @@ const splitItView: RoomGameView = {
   },
 };
 
+const flashGridView: RoomGameView = {
+  CountdownArt: FlashGridCountdown,
+  countdownLabel: "GET YOUR EYES READY",
+  prompt: () => "Remember the glowing squares, then pick them from memory.",
+  heading(challenge, serverNow, startsAt) {
+    const grid = challenge as FlashGridChallenge;
+    const studyEnd = Date.parse(startsAt) + (grid.studySeconds ?? 3) * 1000;
+    const studying = serverNow < studyEnd;
+    return {
+      eyebrow: studying ? "TAKE A GOOD LOOK" : "NOW, WHERE WERE THEY?",
+      title: studying ? "Remember these." : "Your turn.",
+      description: studying ? "The glowing squares are about to flip away." : "Tap every square you remember. Tap again to undo.",
+      seconds: Math.max(0, Math.ceil(((studying ? studyEnd : studyEnd + (grid.recallSeconds ?? 20) * 1000) - serverNow) / 1000)),
+    };
+  },
+  Round: function FlashGridRoundView({ challenge, initialAnswer, serverNow, startsAt, onAnswerChange, onConfirm }) {
+    return <FlashGridRoomRound challenge={challenge as FlashGridChallenge} initialAnswer={initialAnswer}
+      serverNow={serverNow} startsAt={startsAt} onAnswerChange={onAnswerChange} onConfirm={onConfirm} />;
+  },
+  result(challenge, value) {
+    return value && typeof value === "object" && "score" in value ? value as FlashGridResult
+      : scoreFlashGrid(challenge as FlashGridChallenge, null);
+  },
+  preview(challenge, result) {
+    return <FlashGridBoard challenge={challenge as FlashGridChallenge} mode="reveal" result={result as FlashGridResult} />;
+  },
+  waitingPreview(challenge) {
+    return <FlashGridBoard challenge={challenge as FlashGridChallenge} mode="waiting" />;
+  },
+  summary(result) {
+    const grid = result as FlashGridResult;
+    return `${grid.correct} found · ${grid.missed} missed · ${grid.extra} extra`;
+  },
+  detail(challenge, result, nickname) {
+    return <FlashGridRoomReveal challenge={challenge as FlashGridChallenge} result={result as FlashGridResult} nickname={nickname} />;
+  },
+  exact(result) {
+    const grid = result as FlashGridResult;
+    return grid.correct > 0 && grid.missed === 0 && grid.extra === 0;
+  },
+  exactBadge() { return "GRID GENIUS"; },
+  exactMessage: "Grid genius!",
+};
+
 // A new playable game adds one typed rules entry and one view entry. The room
 // engine, server validation, timing, and standings then stay the same.
 export const roomGameViews: Record<GameId, RoomGameView> = {
   "split-it": splitItView,
+  "flash-grid": flashGridView,
 };

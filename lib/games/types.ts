@@ -19,7 +19,7 @@ export type ScoredResult = { score: number };
 export type GameDefinition<Challenge, Answer, Result extends ScoredResult, Options = undefined> = GameMetadata & {
   defaultOptions: Options;
   validateOptions: (input: unknown) => input is Options;
-  generate: (seed: string, options?: Options) => Challenge;
+  generate: (seed: string, options?: Options, gameRoundIndex?: number) => Challenge;
   validateAnswer: (challenge: Challenge, input: unknown) => input is Answer;
   score: (challenge: Challenge, answer: Answer | null, options?: Options) => Result;
 };

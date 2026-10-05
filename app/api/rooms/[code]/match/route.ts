@@ -1,4 +1,4 @@
-import { matchRoundCount, selectGame, type GameId } from "@/lib/games/registry";
+import { gameRoundIndex, matchRoundCount, selectGame, type GameId } from "@/lib/games/registry";
 import { gameOptionsFor, getGame, needsDatabaseSettingsUpgrade, parseMatchSettings, settingsForDatabase } from "@/lib/games/settings";
 import type { MatchSettings } from "@/lib/games/types";
 import { getServerSupabase } from "@/lib/supabase/server";
@@ -11,7 +11,7 @@ function newRound(settings: MatchSettings<GameId>, roundIndex: number) {
   const roundSeed = crypto.randomUUID();
   const gameId = selectGame(settings, roundIndex);
   const game = getGame(gameId)!;
-  return { gameId, roundSeed, challenge: game.generate(roundSeed, gameOptionsFor(settings, gameId)) };
+  return { gameId, roundSeed, challenge: game.generate(roundSeed, gameOptionsFor(settings, gameId), gameRoundIndex(settings, roundIndex)) };
 }
 
 export async function POST(request: Request, context: Context) {
@@ -60,8 +60,12 @@ export async function POST(request: Request, context: Context) {
       const settings = parseMatchSettings(match.settings);
       if (!game || !settings) throw new RoomError(503, "INVALID_ROUND", "This challenge couldn’t be loaded.");
       const answer = body.answer ?? null;
+      if (match.gameId === "flash-grid" && Date.now() < Date.parse(match.startsAt) +
+        (Number((match.challenge as { studySeconds?: number }).studySeconds) || 0) * 1000) {
+        throw new RoomError(409, "ROUND_NOT_STARTED", "The lights are still showing. Wait until it’s time to choose.");
+      }
       if (answer !== null && !game.validateAnswer(match.challenge, answer)) {
-        throw new RoomError(400, "INVALID_ANSWER", "That cut couldn’t be scored. Try placing it again.");
+        throw new RoomError(400, "INVALID_ANSWER", "Those picks couldn’t be scored. Try choosing again.");
       }
       if (answer === null && body.confirm) {
         throw new RoomError(400, "INVALID_ANSWER", "Place a cut before locking it in.");

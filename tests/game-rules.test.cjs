@@ -16,9 +16,11 @@ require.extensions[".ts"] = (module, filename) => {
 const { generateShape } = require("../lib/games/split-it/generator.ts");
 const { splitIt, isPerfectSplit, isPerfectTarget, isSplitItOptions } = require("../lib/games/split-it/index.ts");
 const { polygonArea, clipPolygon, cutFractions, bisectAtAngle } = require("../lib/games/split-it/geometry.ts");
-const { selectGame, matchRoundCount, roundSchedule, defaultMatchSettings } = require("../lib/games/registry.ts");
+const { selectGame, gameRoundIndex, matchRoundCount, roundSchedule, defaultMatchSettings } = require("../lib/games/registry.ts");
 const { parseMatchSettings, gameOptionsFor, gameSettingsFor, needsDatabaseSettingsUpgrade, settingsForDatabase } = require("../lib/games/settings.ts");
 const { roundSeed } = require("../lib/games/random.ts");
+const { generateFlashGrid, isFlashGridAnswer, scoreFlashGrid, FLASH_GRID_SIZES, FLASH_GRID_LIT_COUNTS } = require("../lib/games/flash-grid.ts");
+const { flashGrid } = require("../lib/games/flash-grid-room.ts");
 const { resolveMotionPreference } = require("../lib/preferences/motion.ts");
 
 const square = [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }];
@@ -26,6 +28,85 @@ const challenge = (points) => ({ seed: "analytic", generatorVersion: 1, family: 
 const horizontal = (y) => ({ a: { x: 0, y }, b: { x: 1, y } });
 const vertical = (x) => ({ a: { x, y: 0 }, b: { x, y: 1 } });
 const close = (a, b, epsilon = 1e-9) => assert.ok(Math.abs(a - b) <= epsilon, `${a} differs from ${b}`);
+
+test("Flash Grid creates five seeded grids with unique in-range lights", () => {
+  for (let roundIndex = 0; roundIndex < FLASH_GRID_SIZES.length; roundIndex++) {
+    const seed = roundSeed("same-five-grids", roundIndex);
+    const grid = generateFlashGrid(seed, roundIndex);
+    assert.deepEqual(generateFlashGrid(seed, roundIndex), grid);
+    assert.equal(grid.size, FLASH_GRID_SIZES[roundIndex]);
+    assert.equal(grid.litCells.length, FLASH_GRID_LIT_COUNTS[roundIndex]);
+    assert.equal(new Set(grid.litCells).size, grid.litCells.length);
+    assert.ok(grid.litCells.every((cell) => cell >= 0 && cell < grid.size * grid.size));
+  }
+  assert.throws(() => generateFlashGrid("bad", 5), RangeError);
+});
+
+test("Flash Grid scores correct picks and penalizes extras without rewarding every-square guesses", () => {
+  const grid = { seed: "analytic", generatorVersion: 1, size: 3, litCells: [0, 4, 8] };
+  assert.deepEqual(scoreFlashGrid(grid, [8, 0, 4]), { score: 1000, selectedCells: [0, 4, 8], correct: 3, missed: 0, extra: 0 });
+  assert.deepEqual(scoreFlashGrid(grid, [0, 1, 4]), { score: 333, selectedCells: [0, 1, 4], correct: 2, missed: 1, extra: 1 });
+  assert.equal(scoreFlashGrid(grid, Array.from({ length: 9 }, (_, index) => index)).score, 0);
+  assert.equal(scoreFlashGrid(grid, null).score, 0);
+  for (const invalid of [[0, 0], [-1], [9], [1.5], ["0"], {}]) {
+    assert.equal(isFlashGridAnswer(grid, invalid), false);
+    assert.equal(scoreFlashGrid(grid, invalid).score, 0);
+  }
+});
+
+test("Flash Grid room settings validate every round and generate the chosen size and timing", () => {
+  const rounds = [
+    { size: 7, studySeconds: 1, recallSeconds: 5 },
+    { size: 3, studySeconds: 15, recallSeconds: 60 },
+  ];
+  const settings = { enabledGameIds: ["flash-grid"], gameSettings: {
+    "flash-grid": { roundCount: 2, durationSeconds: 23, options: { rounds } },
+  } };
+  assert.deepEqual(parseMatchSettings(settings), settings);
+  assert.equal(matchRoundCount(settings), 2);
+  for (let index = 0; index < rounds.length; index++) {
+    const grid = flashGrid.generate(`room:${index}`, settings.gameSettings["flash-grid"].options, index);
+    assert.equal(grid.size, rounds[index].size);
+    assert.equal(grid.studySeconds, rounds[index].studySeconds);
+    assert.equal(grid.recallSeconds, rounds[index].recallSeconds);
+    assert.equal(grid.durationSeconds, rounds[index].studySeconds + rounds[index].recallSeconds);
+    assert.deepEqual(flashGrid.generate(`room:${index}`, settings.gameSettings["flash-grid"].options, index), grid);
+    assert.equal(flashGrid.validateAnswer(grid, [0, 1]), true);
+    assert.equal(flashGrid.validateAnswer(grid, [0, grid.size * grid.size]), false);
+    assert.deepEqual(flashGrid.score(grid, grid.litCells).score, 1000);
+  }
+  const invalid = (roundCount, changedRounds, durationSeconds = 23) => ({ enabledGameIds: ["flash-grid"], gameSettings: {
+    "flash-grid": { roundCount, durationSeconds, options: { rounds: changedRounds } },
+  } });
+  for (const value of [
+    invalid(0, rounds), invalid(11, rounds), invalid(3, rounds), invalid(2, rounds, 24),
+    invalid(2, [{ ...rounds[0], size: 2 }, rounds[1]]),
+    invalid(2, [{ ...rounds[0], size: 8 }, rounds[1]]),
+    invalid(2, [{ ...rounds[0], studySeconds: 0 }, rounds[1]]),
+    invalid(2, [{ ...rounds[0], studySeconds: 16 }, rounds[1]]),
+    invalid(2, [{ ...rounds[0], recallSeconds: 4 }, rounds[1]]),
+    invalid(2, [{ ...rounds[0], recallSeconds: 61 }, rounds[1]]),
+    invalid(2, [{ ...rounds[0], recallSeconds: 7.5 }, rounds[1]]),
+  ]) assert.equal(parseMatchSettings(value), null);
+});
+
+test("mixed matches select the correct Flash Grid round configuration", () => {
+  const settings = { enabledGameIds: ["split-it", "flash-grid"], gameSettings: {
+    "split-it": { roundCount: 2, durationSeconds: 20, options: { targetPercent: 50 } },
+    "flash-grid": { roundCount: 2, durationSeconds: 23, options: { rounds: [
+      { size: 4, studySeconds: 2, recallSeconds: 10 },
+      { size: 6, studySeconds: 4, recallSeconds: 30 },
+    ] } },
+  } };
+  assert.deepEqual([0, 1, 2, 3].map((index) => selectGame(settings, index)),
+    ["split-it", "split-it", "flash-grid", "flash-grid"]);
+  assert.deepEqual([0, 1, 2, 3].map((index) => selectGame({ ...settings,
+    enabledGameIds: ["flash-grid", "split-it"] }, index)),
+    ["split-it", "split-it", "flash-grid", "flash-grid"]);
+  assert.equal(gameRoundIndex(settings, 2), 0);
+  assert.equal(gameRoundIndex(settings, 3), 1);
+  assert.equal(flashGrid.generate("second", settings.gameSettings["flash-grid"].options, gameRoundIndex(settings, 3)).size, 6);
+});
 
 test("game motion starts on and preserves an explicit off choice", () => {
   assert.deepEqual(resolveMotionPreference(null), { paused: false, motion: "on" });
@@ -149,7 +230,9 @@ test("match seeds reproduce rounds and game selection respects the enabled list"
   assert.equal(matchRoundCount(settings), 3);
   for (let round = 0; round < 3; round++) assert.equal(selectGame(settings, round), "split-it");
   assert.deepEqual(roundSchedule(["split-it", "future-game"], { "split-it": 2, "future-game": 3 }),
-    ["split-it", "future-game", "split-it", "future-game", "future-game"]);
+    ["split-it", "split-it", "future-game", "future-game", "future-game"]);
+  assert.deepEqual(roundSchedule(["future-game", "split-it"], { "split-it": 2, "future-game": 3 }),
+    ["future-game", "future-game", "future-game", "split-it", "split-it"]);
   assert.throws(() => selectGame(settings, 3), /No game configured/);
   assert.throws(() => selectGame({ enabledGameIds: [], gameSettings: {} }, 0), /at least one playable minigame/);
 });

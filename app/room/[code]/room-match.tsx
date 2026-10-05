@@ -45,6 +45,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
   const deadline = Date.parse(match.deadline);
   const countdown = Math.min(3, Math.max(0, Math.ceil((startTime - serverNow) / 1000)));
   const seconds = Math.max(0, Math.ceil((deadline - serverNow) / 1000));
+  const heading = view.heading?.(match.challenge, serverNow, match.startsAt);
 
   useEffect(() => {
     alive.current = true;
@@ -100,7 +101,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
       if (failure instanceof RoomRequestError && ["ROUND_CLOSED", "ALREADY_CONFIRMED", "ROUND_NOT_STARTED"].includes(failure.code)) {
         void refresh();
       } else {
-        setError(failure instanceof Error ? failure.message : "Your cut couldn’t be saved. Try again.");
+        setError(failure instanceof Error ? failure.message : "Your answer couldn’t be saved. Try again.");
       }
     } finally { sending.current = false; }
   }
@@ -168,25 +169,27 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
     </>}
 
     {match.phase === "playing" && countdown === 0 && <>
-      <RoundHeading eyebrow={`ROUND ${match.roundIndex + 1} · GO WITH YOUR GUT`}
-        title={`${gameTitle}.`}
-        description={view.prompt(options)} seconds={seconds} />
+      <RoundHeading eyebrow={heading?.eyebrow ?? `ROUND ${match.roundIndex + 1} · GO WITH YOUR GUT`}
+        title={heading?.title ?? `${gameTitle}.`}
+        description={heading?.description ?? view.prompt(options)} seconds={heading?.seconds ?? seconds} />
       {match.myConfirmed || locking ? <section className={styles.waitingCard} aria-live="polite">
         <span className={styles.waitingArt} aria-hidden="true">✦</span>
-        <h2>Cut locked in.</h2>
+        <h2>Answer locked in.</h2>
         <p>{match.confirmedCount} of {match.players.length} players ready. The reveal starts when everyone locks in or the timer ends.</p>
-        <div className={styles.waitingPreview}>{view.preview(match.challenge, view.result(match.challenge, null, options))}</div>
+        <div className={styles.waitingPreview}>{view.waitingPreview?.(match.challenge) ??
+          view.preview(match.challenge, view.result(match.challenge, null, options))}</div>
       </section> : <div key={`${match.id}:${match.roundIndex}`}>
         <Round challenge={match.challenge} options={options} initialAnswer={match.myAnswer}
+          serverNow={serverNow} startsAt={match.startsAt}
           onAnswerChange={changeAnswer} onConfirm={confirm} />
-        {seconds === 0 && <p className={styles.matchNotice}>Time is up. Checking everyone’s cuts…</p>}
+        {seconds === 0 && <p className={styles.matchNotice}>Time is up. Checking everyone’s answers…</p>}
       </div>}
     </>}
 
     {match.phase === "reveal" && <>
-      {exact && <Celebration key={`${match.id}:${match.roundIndex}`} message="Perfect target!"
+      {exact && <Celebration key={`${match.id}:${match.roundIndex}`} message={view.exactMessage ?? "Perfect target!"}
         badge={view.exactBadge(options)} detail="Your eyeballs deserve a tiny trophy." />}
-      <RoundHeading eyebrow="THE MOMENT OF ALMOST-TRUTH" title="The cuts are in."
+      <RoundHeading eyebrow="THE MOMENT OF ALMOST-TRUTH" title="The answers are in."
         description="Pick a friend’s card to see how their guess landed." />
       <RoundResults key={match.roundIndex} players={results} currentPlayerId={snapshot.currentPlayerId}
         renderPreview={(result) => view.preview(match.challenge, result)}
@@ -207,7 +210,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
       <section className={styles.finalMatchCard}>
         <span className={styles.eyebrow}>FINAL STANDINGS</span>
         <Standings players={results} currentPlayerId={snapshot.currentPlayerId} />
-        <p>{isHost ? "Same room, fresh shapes. You can tweak the settings before the rematch." : "The host can bring everyone back to the lobby for another match."}</p>
+        <p>{isHost ? "Same room, fresh challenges. You can tweak the settings before the rematch." : "The host can bring everyone back to the lobby for another match."}</p>
         {isHost && <button className={games.primaryButton} onClick={() => void act("rematch")} disabled={busy}>Back to lobby <span>↗</span></button>}
       </section>
     </>}

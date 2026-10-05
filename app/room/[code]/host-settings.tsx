@@ -5,6 +5,11 @@ import { Illustration, type GameArt } from "@/app/components/art";
 import { gameCatalog, gameRegistry, type GameId } from "@/lib/games/registry";
 import { parseMatchSettings } from "@/lib/games/settings";
 import { defaultSplitItOptions, isSplitItOptions } from "@/lib/games/split-it";
+import {
+  defaultFlashGridOptions, isFlashGridOptions, FLASH_GRID_MAX_RECALL_SECONDS,
+  FLASH_GRID_MAX_STUDY_SECONDS, FLASH_GRID_MIN_RECALL_SECONDS, FLASH_GRID_MIN_STUDY_SECONDS,
+  type FlashGridOptions, type FlashGridRoundOptions,
+} from "@/lib/games/flash-grid";
 import type { GameMatchSettings, MatchSettings } from "@/lib/games/types";
 import styles from "./room.module.css";
 
@@ -39,6 +44,7 @@ const gameSettingsUi: Record<GameId, {
       return `${target} / ${100 - target} target`;
     },
   },
+  "flash-grid": { art: "grid" },
 };
 
 function numberError(value: string, minimum: number, maximum: number, label: string) {
@@ -48,7 +54,67 @@ function numberError(value: string, minimum: number, maximum: number, label: str
     ? `Choose a whole number from ${minimum} to ${maximum}.` : null;
 }
 
-function GameSettingsEditor({ game, settings, disabled, onChange, OptionsEditor }: {
+function FlashGridRoundEditor({ index, round, disabled, onChange }: {
+  index: number; round: FlashGridRoundOptions; disabled: boolean;
+  onChange: (round: FlashGridRoundOptions) => void;
+}) {
+  const [studyInput, setStudyInput] = useState(String(round.studySeconds));
+  const [recallInput, setRecallInput] = useState(String(round.recallSeconds));
+  const studyError = numberError(studyInput, FLASH_GRID_MIN_STUDY_SECONDS, FLASH_GRID_MAX_STUDY_SECONDS, "study seconds");
+  const recallError = numberError(recallInput, FLASH_GRID_MIN_RECALL_SECONDS, FLASH_GRID_MAX_RECALL_SECONDS, "choice seconds");
+  return <fieldset className={styles.flashRoundSettings} disabled={disabled}>
+    <legend>Round {index + 1}</legend>
+    <div className={styles.settingsGrid}>
+      <label className={styles.settingField}>Grid size
+        <select value={round.size} onChange={(event) => onChange({ ...round, size: Number(event.target.value) })}>
+          {[3, 4, 5, 6, 7].map((size) => <option key={size} value={size}>{size} × {size}</option>)}
+        </select><small>3 × 3 to 7 × 7</small>
+      </label>
+      <label className={styles.settingField}>Seconds to see
+        <input type="number" min={FLASH_GRID_MIN_STUDY_SECONDS} max={FLASH_GRID_MAX_STUDY_SECONDS} step="1"
+          value={studyInput} onChange={(event) => { setStudyInput(event.target.value); onChange({ ...round, studySeconds: Number(event.target.value) }); }}
+          aria-invalid={!!studyError} />
+        <small className={studyError ? styles.settingError : undefined} aria-live="polite">{studyError ?? "1–15 seconds"}</small>
+      </label>
+      <label className={styles.settingField}>Seconds to choose
+        <input type="number" min={FLASH_GRID_MIN_RECALL_SECONDS} max={FLASH_GRID_MAX_RECALL_SECONDS} step="1"
+          value={recallInput} onChange={(event) => { setRecallInput(event.target.value); onChange({ ...round, recallSeconds: Number(event.target.value) }); }}
+          aria-invalid={!!recallError} />
+        <small className={recallError ? styles.settingError : undefined} aria-live="polite">{recallError ?? "5–60 seconds"}</small>
+      </label>
+    </div>
+  </fieldset>;
+}
+
+function FlashGridSettingsEditor({ settings, disabled, onChange }: {
+  settings: GameMatchSettings; disabled: boolean; onChange: (settings: GameMatchSettings) => void;
+}) {
+  const [roundsInput, setRoundsInput] = useState(String(settings.roundCount));
+  const options = settings.options && typeof settings.options === "object" && "rounds" in settings.options &&
+    Array.isArray(settings.options.rounds) ? settings.options as FlashGridOptions : defaultFlashGridOptions;
+  const roundsError = numberError(roundsInput, 1, 10, "a round count");
+  return <div className={styles.flashSettings}>
+    <label className={styles.settingField}>Rounds
+      <input type="number" min="1" max="10" step="1" value={roundsInput} disabled={disabled}
+        onChange={(event) => {
+          const value = event.target.value;
+          setRoundsInput(value);
+          const count = Number(value);
+          const rounds = Array.from({ length: Number.isInteger(count) && count >= 1 && count <= 10 ? count : options.rounds.length },
+            (_, index) => options.rounds[index] ?? defaultFlashGridOptions.rounds[index % defaultFlashGridOptions.rounds.length]);
+          onChange({ ...settings, roundCount: count, options: { rounds } });
+        }} aria-invalid={!!roundsError} />
+      <small className={roundsError ? styles.settingError : undefined} aria-live="polite">{roundsError ?? "1–10 rounds"}</small>
+    </label>
+    {options.rounds.map((round, index) =>
+      <FlashGridRoundEditor key={index} index={index} round={round} disabled={disabled}
+        onChange={(next) => onChange({ ...settings, options: {
+          rounds: options.rounds.map((item, itemIndex) => itemIndex === index ? next : item),
+        } })} />)}
+  </div>;
+}
+
+function StandardGameSettingsEditor({ game, settings, disabled, onChange, OptionsEditor }: {
   game: (typeof gameCatalog)[number];
   settings: GameMatchSettings;
   disabled: boolean;
@@ -81,6 +147,12 @@ function GameSettingsEditor({ game, settings, disabled, onChange, OptionsEditor 
     {OptionsEditor && <OptionsEditor options={settings.options} disabled={disabled}
       onChange={(options) => onChange({ ...settings, options })} />}
   </div>;
+}
+
+function GameSettingsEditor(props: Parameters<typeof StandardGameSettingsEditor>[0]) {
+  return props.game.id === "flash-grid"
+    ? <FlashGridSettingsEditor settings={props.settings} disabled={props.disabled} onChange={props.onChange} />
+    : <StandardGameSettingsEditor {...props} />;
 }
 
 function SettingsIcon() {
@@ -146,7 +218,8 @@ export function HostSettings({ settings, needsSave, isHost, playerCount, allRead
                   onChange={(event) => setDraft((current) => ({
                     ...current,
                     enabledGameIds: event.target.checked
-                      ? [...current.enabledGameIds, game.id] : current.enabledGameIds.filter((id) => id !== game.id),
+                      ? gameCatalog.map((entry) => entry.id).filter((id) => id === game.id || current.enabledGameIds.includes(id))
+                      : current.enabledGameIds.filter((id) => id !== game.id),
                     gameSettings: event.target.checked ? { ...current.gameSettings, [game.id]: current.gameSettings[game.id] ?? config } : current.gameSettings,
                   }))} />
                 <span className={styles.gameIcon}><Illustration kind={art} /></span>
@@ -201,8 +274,11 @@ export function HostSettings({ settings, needsSave, isHost, playerCount, allRead
             </div>
             {open && <div className={styles.gameOptionsPanel} id={`game-settings-${game.id}`}>
               <h3>{game.name} settings</h3>
-              <p className={styles.gameOptionValue}>{config.roundCount} {config.roundCount === 1 ? "round" : "rounds"} · {config.durationSeconds} seconds each
-                {describeOptions && <> · {describeOptions(config.options)}</>}</p>
+              {game.id === "flash-grid" && isFlashGridOptions(config.options)
+                ? <div className={styles.flashSummary}>{config.options.rounds.map((round, index) =>
+                  <p key={index}>Round {index + 1}: {round.size} × {round.size} · {round.studySeconds}s to see · {round.recallSeconds}s to choose</p>)}</div>
+                : <p className={styles.gameOptionValue}>{config.roundCount} {config.roundCount === 1 ? "round" : "rounds"} · {config.durationSeconds} seconds each
+                  {describeOptions && <> · {describeOptions(config.options)}</>}</p>}
             </div>}
           </div>;
         })}

@@ -88,6 +88,12 @@ label.gameChoiceMain { cursor: pointer; }
 .gameOptionsPanel { margin: 14px 0 0 29px; padding: 16px; border: 1px solid #d9e2d1; border-radius: 14px; background: #fffdf7; }
 .gameOptionsPanel h3 { margin: 0 0 12px; color: #53674c; font-size: 12px; font-weight: 900; }
 .gameOptionValue { margin: 0; color: #687e5f; font-size: 13px; font-weight: 800; }
+.flashSettings { display: grid; gap: 14px; }
+.flashSettings > .settingField { max-width: 210px; }
+.flashRoundSettings { min-width: 0; margin: 0; padding: 12px; border: 1px solid #dce6d8; border-radius: 16px; background: #f6faef; }
+.flashRoundSettings legend { padding: 0 7px; color: #53674c; font-size: 12px; font-weight: 900; }
+.flashSummary { display: grid; gap: 6px; }
+.flashSummary p { margin: 0; color: #687e5f; font-size: 12px; font-weight: 800; }
 .settingsActions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
 .settingsActions p { flex: 1; min-width: 190px; color: #858875; font-size: 11px; font-weight: 700; line-height: 1.5; margin: 0; }
 .settingsActions .settingsActionError { color: #a34536; }

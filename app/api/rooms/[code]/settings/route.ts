@@ -10,7 +10,7 @@ export async function PATCH(request: Request, context: Context) {
     const { code } = await context.params;
     const body = await readBody(request);
     const settings = parseMatchSettings(body.settings);
-    if (!settings) throw new RoomError(400, "INVALID_SETTINGS", "Choose valid rounds, time, target, and at least one game.");
+    if (!settings) throw new RoomError(400, "INVALID_SETTINGS", "Choose valid game settings and at least one game.");
     const snapshot = await roomRpc<RoomSnapshot>("rightish_update_settings", {
       p_code: roomCode(code), p_player_id: playerId, p_settings: settingsForDatabase(settings),
     });
