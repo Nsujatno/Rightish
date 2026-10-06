@@ -10,6 +10,10 @@ import {
   FLASH_GRID_MAX_STUDY_SECONDS, FLASH_GRID_MIN_RECALL_SECONDS, FLASH_GRID_MIN_STUDY_SECONDS,
   type FlashGridOptions, type FlashGridRoundOptions,
 } from "@/lib/games/flash-grid";
+import {
+  defaultInternalClockOptions, INTERNAL_CLOCK_MAX_TARGET_SECONDS, INTERNAL_CLOCK_MIN_TARGET_SECONDS,
+  isInternalClockOptions, type InternalClockOptions, type InternalClockRoundOptions,
+} from "@/lib/games/internal-clock";
 import type { GameMatchSettings, MatchSettings } from "@/lib/games/types";
 import styles from "./room.module.css";
 
@@ -45,6 +49,7 @@ const gameSettingsUi: Record<GameId, {
     },
   },
   "flash-grid": { art: "grid" },
+  "internal-clock": { art: "clock" },
 };
 
 function numberError(value: string, minimum: number, maximum: number, label: string) {
@@ -114,6 +119,53 @@ function FlashGridSettingsEditor({ settings, disabled, onChange }: {
   </div>;
 }
 
+function InternalClockRoundEditor({ index, round, disabled, onChange }: {
+  index: number; round: InternalClockRoundOptions; disabled: boolean;
+  onChange: (round: InternalClockRoundOptions) => void;
+}) {
+  const [targetInput, setTargetInput] = useState(String(round.targetSeconds));
+  const targetError = numberError(targetInput, INTERNAL_CLOCK_MIN_TARGET_SECONDS, INTERNAL_CLOCK_MAX_TARGET_SECONDS, "target seconds");
+  return <fieldset className={styles.flashRoundSettings} disabled={disabled}>
+    <legend>Round {index + 1}</legend>
+    <label className={styles.settingField}>Seconds to guess
+      <input type="number" min={INTERNAL_CLOCK_MIN_TARGET_SECONDS} max={INTERNAL_CLOCK_MAX_TARGET_SECONDS} step="1"
+        value={targetInput} onChange={(event) => { setTargetInput(event.target.value);
+          onChange({ targetSeconds: Number(event.target.value) }); }} aria-invalid={!!targetError} />
+      <small className={targetError ? styles.settingError : undefined} aria-live="polite">
+        {targetError ?? "1–30 seconds. The hidden clock stops five seconds later."}
+      </small>
+    </label>
+  </fieldset>;
+}
+
+function InternalClockSettingsEditor({ settings, disabled, onChange }: {
+  settings: GameMatchSettings; disabled: boolean; onChange: (settings: GameMatchSettings) => void;
+}) {
+  const [roundsInput, setRoundsInput] = useState(String(settings.roundCount));
+  const options = settings.options && typeof settings.options === "object" && "rounds" in settings.options &&
+    Array.isArray(settings.options.rounds) ? settings.options as InternalClockOptions : defaultInternalClockOptions;
+  const roundsError = numberError(roundsInput, 1, 10, "a round count");
+  return <div className={styles.flashSettings}>
+    <label className={styles.settingField}>Rounds
+      <input type="number" min="1" max="10" step="1" value={roundsInput} disabled={disabled}
+        onChange={(event) => {
+          const value = event.target.value;
+          setRoundsInput(value);
+          const count = Number(value);
+          const rounds = Array.from({ length: Number.isInteger(count) && count >= 1 && count <= 10 ? count : options.rounds.length },
+            (_, index) => options.rounds[index] ?? defaultInternalClockOptions.rounds[index % defaultInternalClockOptions.rounds.length]);
+          onChange({ ...settings, roundCount: count, options: { rounds } });
+        }} aria-invalid={!!roundsError} />
+      <small className={roundsError ? styles.settingError : undefined} aria-live="polite">{roundsError ?? "1–10 rounds"}</small>
+    </label>
+    {options.rounds.map((round, index) =>
+      <InternalClockRoundEditor key={index} index={index} round={round} disabled={disabled}
+        onChange={(next) => onChange({ ...settings, options: {
+          rounds: options.rounds.map((item, itemIndex) => itemIndex === index ? next : item),
+        } })} />)}
+  </div>;
+}
+
 function StandardGameSettingsEditor({ game, settings, disabled, onChange, OptionsEditor }: {
   game: (typeof gameCatalog)[number];
   settings: GameMatchSettings;
@@ -150,9 +202,9 @@ function StandardGameSettingsEditor({ game, settings, disabled, onChange, Option
 }
 
 function GameSettingsEditor(props: Parameters<typeof StandardGameSettingsEditor>[0]) {
-  return props.game.id === "flash-grid"
-    ? <FlashGridSettingsEditor settings={props.settings} disabled={props.disabled} onChange={props.onChange} />
-    : <StandardGameSettingsEditor {...props} />;
+  if (props.game.id === "flash-grid") return <FlashGridSettingsEditor settings={props.settings} disabled={props.disabled} onChange={props.onChange} />;
+  if (props.game.id === "internal-clock") return <InternalClockSettingsEditor settings={props.settings} disabled={props.disabled} onChange={props.onChange} />;
+  return <StandardGameSettingsEditor {...props} />;
 }
 
 function SettingsIcon() {
@@ -277,6 +329,9 @@ export function HostSettings({ settings, needsSave, isHost, playerCount, allRead
               {game.id === "flash-grid" && isFlashGridOptions(config.options)
                 ? <div className={styles.flashSummary}>{config.options.rounds.map((round, index) =>
                   <p key={index}>Round {index + 1}: {round.size} × {round.size} · {round.studySeconds}s to see · {round.recallSeconds}s to choose</p>)}</div>
+                : game.id === "internal-clock" && isInternalClockOptions(config.options)
+                  ? <div className={styles.flashSummary}>{config.options.rounds.map((round, index) =>
+                    <p key={index}>Round {index + 1}: guess {round.targetSeconds} seconds</p>)}</div>
                 : <p className={styles.gameOptionValue}>{config.roundCount} {config.roundCount === 1 ? "round" : "rounds"} · {config.durationSeconds} seconds each
                   {describeOptions && <> · {describeOptions(config.options)}</>}</p>}
             </div>}

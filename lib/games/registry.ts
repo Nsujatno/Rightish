@@ -1,9 +1,10 @@
 import { splitIt } from "./split-it";
 import { flashGrid } from "./flash-grid-room";
+import { internalClock } from "./internal-clock-room";
 import type { MatchSettings } from "./types";
 
 // Add games here as they become playable; host settings use this same catalog.
-export const gameRegistry = { "split-it": splitIt, "flash-grid": flashGrid } as const;
+export const gameRegistry = { "split-it": splitIt, "flash-grid": flashGrid, "internal-clock": internalClock } as const;
 export type GameId = keyof typeof gameRegistry;
 export const gameCatalog = Object.values(gameRegistry).map(({ id, name, instructions, defaultRoundCount, defaultDurationSeconds, limits }) => ({
   id: id as GameId, name, instructions, defaultRoundCount, defaultDurationSeconds, limits,
@@ -34,7 +35,7 @@ export function roundSchedule<Id extends string>(ids: readonly Id[], rounds: Par
 
 export function selectGame(settings: MatchSettings<GameId>, roundIndex: number): GameId {
   // Stored enabledGameIds can reflect checkbox history. Match order follows
-  // the catalog so Split It always precedes Flash Grid when both are enabled.
+  // the catalog so each game's rounds stay together in catalog order.
   const ids = gameCatalog.map((game) => game.id).filter((id) => settings.enabledGameIds.includes(id));
   if (!ids.length) throw new Error("A match needs at least one playable minigame.");
   const rounds = Object.fromEntries(ids.map((id) => [id, settings.gameSettings[id]?.roundCount ?? 0])) as Partial<Record<GameId, number>>;

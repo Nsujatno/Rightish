@@ -21,6 +21,8 @@ const { parseMatchSettings, gameOptionsFor, gameSettingsFor, needsDatabaseSettin
 const { roundSeed } = require("../lib/games/random.ts");
 const { generateFlashGrid, isFlashGridAnswer, scoreFlashGrid, FLASH_GRID_SIZES, FLASH_GRID_LIT_COUNTS } = require("../lib/games/flash-grid.ts");
 const { flashGrid } = require("../lib/games/flash-grid-room.ts");
+const { INTERNAL_CLOCK_TARGETS, scoreInternalClock, formatClockSeconds, internalClockRoundLimitMs, roomClockElapsedMs } = require("../lib/games/internal-clock.ts");
+const { internalClock } = require("../lib/games/internal-clock-room.ts");
 const { resolveMotionPreference } = require("../lib/preferences/motion.ts");
 
 const square = [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }];
@@ -52,6 +54,74 @@ test("Flash Grid scores correct picks and penalizes extras without rewarding eve
     assert.equal(isFlashGridAnswer(grid, invalid), false);
     assert.equal(scoreFlashGrid(grid, invalid).score, 0);
   }
+});
+
+test("Internal Clock targets rise and timing errors reduce score evenly", () => {
+  assert.deepEqual(INTERNAL_CLOCK_TARGETS, [3, 4, 5, 6, 8]);
+  assert.equal(internalClockRoundLimitMs(8), 13000);
+  assert.equal(scoreInternalClock(8, internalClockRoundLimitMs(8)).score, 0);
+  assert.deepEqual(scoreInternalClock(5, 5000), { targetMs: 5000, elapsedMs: 5000, differenceMs: 0, score: 1000 });
+  assert.equal(scoreInternalClock(5, 4000).score, 800);
+  assert.equal(scoreInternalClock(5, 6000).score, 800);
+  assert.equal(scoreInternalClock(5, 10000).score, 0);
+  assert.equal(scoreInternalClock(5, 15000).score, 0);
+  assert.equal(formatClockSeconds(5123), "5.12");
+  for (const [target, actual] of [[0, 1000], [5, -1], [5, Infinity], [NaN, 1000]]) {
+    assert.throws(() => scoreInternalClock(target, actual), RangeError);
+  }
+  assert.throws(() => internalClockRoundLimitMs(0), RangeError);
+});
+
+test("Internal Clock room validates 1–30 second targets and scores server-measured stops", () => {
+  const rounds = [{ targetSeconds: 1 }, { targetSeconds: 30 }];
+  const settings = { enabledGameIds: ["internal-clock"], gameSettings: {
+    "internal-clock": { roundCount: 2, durationSeconds: 8, options: { rounds } },
+  } };
+  assert.deepEqual(parseMatchSettings(settings), settings);
+  assert.equal(matchRoundCount(settings), 2);
+  const first = internalClock.generate("first", settings.gameSettings["internal-clock"].options, 0);
+  const last = internalClock.generate("last", settings.gameSettings["internal-clock"].options, 1);
+  assert.equal(first.targetSeconds, 1);
+  assert.equal(first.durationSeconds, 6);
+  assert.equal(last.targetSeconds, 30);
+  assert.equal(last.durationSeconds, 35);
+  assert.equal(internalClock.validateAnswer(last, 0), true);
+  assert.equal(internalClock.validateAnswer(last, 35000), true);
+  assert.equal(internalClock.validateAnswer(last, 35001), false);
+  assert.equal(internalClock.validateAnswer(last, 2.5), false);
+  assert.equal(internalClock.score(last, 30000).score, 1000);
+  assert.equal(internalClock.score(last, null).score, 0);
+  const start = "2026-10-05T12:00:00.000Z";
+  assert.equal(roomClockElapsedMs(start, Date.parse(start) + 30500, 30), 30500);
+  assert.equal(roomClockElapsedMs(start, Date.parse(start) - 100, 30), 0);
+  assert.equal(roomClockElapsedMs(start, Date.parse(start) + 50000, 30), 35000);
+  assert.throws(() => roomClockElapsedMs("bad", Date.now(), 30), RangeError);
+  const invalid = (roundCount, changedRounds, durationSeconds = 8) => ({ enabledGameIds: ["internal-clock"], gameSettings: {
+    "internal-clock": { roundCount, durationSeconds, options: { rounds: changedRounds } },
+  } });
+  for (const value of [
+    invalid(0, rounds), invalid(11, rounds), invalid(3, rounds), invalid(2, rounds, 9),
+    invalid(2, [{ targetSeconds: 0 }, rounds[1]]),
+    invalid(2, [rounds[0], { targetSeconds: 31 }]),
+    invalid(2, [{ targetSeconds: 1.5 }, rounds[1]]),
+    invalid(2, [{ targetSeconds: "5" }, rounds[1]]),
+  ]) assert.equal(parseMatchSettings(value), null);
+});
+
+test("mixed matches finish Split It, Flash Grid, then Internal Clock rounds", () => {
+  const settings = { enabledGameIds: ["internal-clock", "flash-grid", "split-it"], gameSettings: {
+    "split-it": { roundCount: 2, durationSeconds: 20, options: { targetPercent: 50 } },
+    "flash-grid": { roundCount: 1, durationSeconds: 23, options: { rounds: [
+      { size: 4, studySeconds: 3, recallSeconds: 20 },
+    ] } },
+    "internal-clock": { roundCount: 2, durationSeconds: 8, options: { rounds: [
+      { targetSeconds: 5 }, { targetSeconds: 12 },
+    ] } },
+  } };
+  assert.deepEqual([0, 1, 2, 3, 4].map((index) => selectGame(settings, index)),
+    ["split-it", "split-it", "flash-grid", "internal-clock", "internal-clock"]);
+  assert.equal(internalClock.generate("second", settings.gameSettings["internal-clock"].options,
+    gameRoundIndex(settings, 4)).targetSeconds, 12);
 });
 
 test("Flash Grid room settings validate every round and generate the chosen size and timing", () => {

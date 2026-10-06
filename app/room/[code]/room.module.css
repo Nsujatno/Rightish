@@ -105,6 +105,7 @@ label.gameChoiceMain { cursor: pointer; }
 .countdownPanel::after { right: -40px; bottom: -53px; background: #efb9a799; }
 .countdownEyebrow { position: relative; z-index: 1; color: #897b5e; font-size: 10px; font-weight: 900; letter-spacing: 1.7px; text-align: center; }
 .countdownStage { position: relative; z-index: 1; display: grid; place-items: center; width: 230px; height: 205px; }
+.countdownGoal { position: relative; z-index: 1; padding: 7px 14px; border: 1px solid #d6dfce; border-radius: 99px; background: #e8f0de; color: #638064; font-size: 12px; font-weight: 900; letter-spacing: 1px; }
 .countdownFallback { display: grid; place-items: center; width: 170px; height: 170px; border-radius: 44% 56% 52% 48%; background: #f5c35f; box-shadow: 0 9px 0 #d7a34b6b; color: #5c492d; font-family: var(--font-display), sans-serif; font-size: 106px; font-weight: 500; line-height: 1; animation: matchCountPop .7s cubic-bezier(.16,.85,.27,1) both; }
 .countdownSteps { position: relative; z-index: 1; display: flex; gap: 7px; margin-top: 1px; }
 .countdownSteps i { width: 25px; height: 6px; border-radius: 9px; background: #d7cbb5; transition: background .4s, transform .4s; }

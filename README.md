@@ -1,6 +1,6 @@
 ﻿# Rightish
 
-A party game for your perfectly imperfect brain. The landing page, live rooms, solo Split It and Flash Grid practice, and synchronized room matches for both games are implemented.
+A party game for your perfectly imperfect brain. The landing page, live rooms, solo Split It, Flash Grid, and Internal Clock practice, and synchronized room matches for all three games are implemented.
 
 ## Local development
 
@@ -19,7 +19,7 @@ SUPABASE_SECRET_KEY=your-server-secret-key
 - Host creates a room with a six-character code and a player nickname.
 - Friends join using the six-character room code.
 - Players appear live, can toggle ready, and keep their place when refreshing or disconnecting.
-- Hosts choose playable games, then use each game's settings button. Split It offers 1–10 rounds, a 5–60 second timer, and a target from 50/50 to 80/20. Saving settings clears Ready marks.
+- Hosts choose playable games, then use each game's settings button. Split It offers 1–10 rounds, a 5–60 second timer, and a target from 50/50 to 80/20. Flash Grid and Internal Clock have per-round settings. Saving settings clears Ready marks.
 - Rooms created with the earlier settings format keep their round, timer, and target choices and can start without saving again.
 - A match needs at least two players and everyone Ready. Each round has a shared three-second countdown and a server deadline. The host advances after the reveal.
 - A disconnected host hands control to the next active player after 30 seconds. Explicitly leaving removes a player from the match; a rematch returns everyone to the same lobby with settings kept and Ready marks cleared.
@@ -51,6 +51,17 @@ Open `/play/flash-grid`, or select Flash Grid on the landing page and choose **T
 - Each correct pick adds an equal share of 1,000 points. Each extra pick removes that share, with a floor of zero. The reveal distinguishes found, missed, and extra squares.
 - Replay the same patterns or copy a seeded challenge link for a friend.
 - In rooms, the host can enable Flash Grid for 1–10 rounds and choose each round’s grid size (3×3–7×7), study time (1–15 seconds), and choice time (5–60 seconds).
+
+## Internal Clock solo practice
+
+Open `/play/internal-clock`, or select Internal Clock on the landing page and choose **Try Internal Clock**.
+
+- Five increasing targets: 3, 4, 5, 6, and 8 seconds. Each round auto-stops five seconds after its target, so none runs longer than 13 seconds.
+- Start the hidden timer and press Stop when the target feels right. The running time is never shown.
+- Reveal compares the target and actual time. Each second of error costs 200 of the 1,000 points available per round.
+- Review the five results and replay the targets.
+- In rooms, the host can set 1–10 rounds and choose a separate 1–30 second target for each round. Everyone starts after the shared countdown; each player presses Stop when the target feels right. The server records and scores the stop time, and the round ends when everyone stops or five seconds after the target.
+- Apply `supabase/migrations/202610050007_internal_clock_round_timing.sql` after migration 006 before starting an Internal Clock room match.
 
 ## Checks
 

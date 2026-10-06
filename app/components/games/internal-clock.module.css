@@ -1,0 +1,125 @@
+.intro { display: grid; grid-template-columns: 1fr 1fr; gap: 45px; align-items: center; margin: 18px 0 42px; }
+.clockCard { position: relative; display: grid; place-items: center; min-height: 390px; border: 1px solid #d9e1ee; border-radius: 32px; background-color: #e8edf8; background-image: radial-gradient(#bccbe54d 1px, transparent 1px); background-size: 19px 19px; box-shadow: 0 7px 0 #d8e0ef; }
+.clockCard svg { width: min(76%, 330px); filter: drop-shadow(0 12px 0 #a5b4d17a); transform: rotate(-8deg); }
+.clockCard > span { position: absolute; right: 24px; bottom: 23px; color: #7483a5; font-size: 12px; font-style: italic; font-weight: 800; transform: rotate(-5deg); }
+.introCopy h2 { margin: 12px 0 20px; font-family: var(--font-display), sans-serif; font-size: clamp(30px, 4vw, 43px); font-weight: 500; line-height: 1.15; }
+.introCopy ol { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; }
+.introCopy li { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 700; color: #637166; }
+.introCopy li b { display: grid; place-items: center; flex: 0 0 30px; height: 30px; border-radius: 10px; background: #dfe6f5; color: #65779e; font-family: var(--font-display), sans-serif; font-size: 19px; font-weight: 500; }
+.introCopy > p { margin: 22px 0 18px; color: #818774; font-size: 12px; font-weight: 700; line-height: 1.6; }
+.missionCard { width: min(100%, 760px); margin: 10px auto 50px; padding: 22px; border: 1px solid #d9e1ee; border-radius: 30px; background: #e9eef9; box-shadow: 0 7px 0 #d8e0ef; }
+.missionCard[data-running="true"] { background: #edf0f7; }
+.missionHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 14px; padding: 0 3px 16px; color: #7786a3; font-size: 10px; font-weight: 900; letter-spacing: 1.3px; }
+.missionStatus { padding: 8px 11px; border: 1px solid #d8e0d2; border-radius: 99px; background: #e6eedf; color: #6a8469; font-size: 9px; letter-spacing: .7px; }
+.missionCard[data-running="true"] .missionStatus { border-color: #ead29c; background: #fff1c5; color: #95723f; }
+.missionBody { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 16px; }
+.missionTarget { position: relative; display: flex; flex-direction: column; justify-content: center; min-height: 275px; overflow: hidden; padding: 27px 31px; border: 1px solid #e5e5d9; border-radius: 24px; background: #fffdf6; }
+.missionTarget::after { position: absolute; right: -49px; bottom: -76px; width: 180px; height: 180px; border: 18px solid #edf1e6; border-radius: 50%; content: ""; pointer-events: none; }
+.missionTarget > * { position: relative; z-index: 1; }
+.targetLabel { display: inline-flex; align-items: center; gap: 7px; color: #738a73; font-size: 11px; font-weight: 900; letter-spacing: 1.4px; }
+.targetLabel i { position: relative; display: inline-block; flex: 0 0 19px; width: 3px; height: 17px; background: linear-gradient(to right, #7e9c78 0 3px, transparent 3px); }
+.targetLabel i::after { position: absolute; top: 0; left: 3px; width: 15px; height: 11px; background: #a7bd9b; clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%); content: ""; }
+.targetNumber { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 13px; margin: 10px 0 7px; color: #526c94; }
+.targetNumber strong { font-family: var(--font-display), sans-serif; font-size: clamp(104px, 12vw, 142px); font-weight: 500; line-height: .88; }
+.targetNumber span { font-family: var(--font-display), sans-serif; font-size: clamp(21px, 3vw, 28px); }
+.missionTarget p { max-width: 265px; margin: 10px 0 0; color: #7f8a9c; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.missionBuddy { position: relative; display: grid; place-items: center; min-height: 275px; border: 1px solid #dce4f2; border-radius: 24px; background-color: #e3eafa; background-image: radial-gradient(#c4d0e7a8 1px, transparent 1px); background-size: 18px 18px; }
+.clockFace { display: grid; place-items: center; width: 160px; height: 160px; border-radius: 50%; background: #fffaf1; box-shadow: 0 6px 0 #cbd5e9, 0 0 0 10px #dce5f5; transform: rotate(-8deg); }
+.clockFace svg { width: 150px; height: 150px; }
+.missionSparkle { position: absolute; top: 21px; right: 21px; color: #f4c56f; font-size: 26px; }
+.clockBubble { position: absolute; right: 11px; bottom: 14px; padding: 7px 11px; border: 1px solid #daceaf; border-radius: 12px; background: #fff8dd; color: #897858; font-size: 11px; font-style: italic; font-weight: 900; transform: rotate(-5deg); }
+.missionFooter { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 3px 3px; }
+.missionFooter p { display: grid; gap: 4px; margin: 0; color: #7b88a0; font-size: 11px; font-weight: 700; line-height: 1.4; }
+.missionFooter p strong { color: #566d94; font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 500; line-height: 1; }
+.missionFooter button { flex: 0 0 240px; }
+.countdownClock { position: relative; width: 200px; height: 180px; margin: 0 auto; }
+.countdownClock svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 7px 0 #a5b4d161); }
+.countdownLongHand, .countdownShortHand { transform-box: view-box; transform-origin: 100px 98px; transition: transform .23s cubic-bezier(.2,.8,.2,1); }
+.countdownClock[data-count="2"] .countdownLongHand { transform: rotate(90deg); }
+.countdownClock[data-count="1"] .countdownLongHand { transform: rotate(180deg); }
+.countdownClock[data-count="2"] .countdownShortHand { transform: rotate(15deg); }
+.countdownClock[data-count="1"] .countdownShortHand { transform: rotate(30deg); }
+.countdownBadge { position: absolute; right: 0; bottom: 1px; display: grid; place-items: center; width: 51px; height: 51px; border: 1px solid #dca648; border-radius: 16px; background: #f5c35f; box-shadow: 0 4px 0 #d9a74f; color: #5c492d; font-family: var(--font-display), sans-serif; font-size: 34px; font-weight: 500; line-height: 1; }
+.revealCard { display: grid; gap: 20px; padding: 25px; border: 1px solid #d9e1ee; border-radius: 28px; background: #f1f4fb; box-shadow: 0 5px 0 #dce3ef; }
+.revealTop { display: grid; grid-template-columns: 115px minmax(0, 1fr) auto; align-items: center; gap: 23px; }
+.revealMascot { position: relative; display: grid; place-items: center; width: 110px; height: 112px; border-radius: 28px; background: #dfe7f5; transform: rotate(-5deg); }
+.revealMascot svg { width: 100px; height: 90px; }
+.revealMascot > span { position: absolute; left: -12px; bottom: -8px; padding: 5px 9px; border: 1px solid #dfd1af; border-radius: 12px; background: #fff8dd; color: #7d7152; font-size: 9px; font-weight: 900; white-space: nowrap; transform: rotate(-2deg); }
+.verdict > span { color: #7d89a3; font-size: 10px; font-weight: 900; letter-spacing: 1px; }
+.verdict h2 { margin: 4px 0 5px; color: #536a95; font-family: var(--font-display), sans-serif; font-size: clamp(30px, 4vw, 49px); font-weight: 500; line-height: 1.1; }
+.verdict p { margin: 0; color: #7b859a; font-size: 12px; font-weight: 700; line-height: 1.5; }
+.scoreSticker { display: grid; place-items: center; min-width: 117px; padding: 13px 14px; border: 1px dashed #d9ae65; border-radius: 18px; background: #fff0bc; color: #805f37; box-shadow: 0 4px 0 #e9d9a5; transform: rotate(6deg); }
+.scoreSticker strong { font-family: var(--font-display), sans-serif; font-size: 29px; font-weight: 500; line-height: 1; }
+.scoreSticker span { margin-top: 4px; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
+.timeTrack { padding: 16px 18px 17px; border: 1px solid #e1e7ef; border-radius: 19px; background: #fffdf7; }
+.trackGraphic { --rail-top: 31px; position: relative; height: 65px; margin: 0 13px; }
+.trackRail, .trackGap { position: absolute; top: var(--rail-top); height: 6px; border-radius: 10px; }
+.trackRail { right: 0; left: 0; background: #dce5ed; }
+.trackGap { left: var(--gap-start); width: var(--gap-width); min-width: 2px; background: #f2bd78; animation: gapAppear .55s ease-out .25s both; }
+.targetPin, .stopPin { position: absolute; left: var(--target-position); z-index: 1; transform: translateX(-50%); }
+.targetPin { top: 4px; width: 3px; height: 30px; background: #7e9c78; animation: pinAppear .4s cubic-bezier(.18,.8,.25,1.1) both; }
+.targetPin i { position: absolute; top: 0; left: 2px; width: 16px; height: 12px; border-radius: 2px 4px 4px 2px; background: #a7bd9b; clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%); }
+.stopPin { top: calc(var(--rail-top) - 23px); left: var(--stop-position); width: 17px; height: 17px; border: 3px solid #c89143; border-radius: 50%; background: #f5c76b; box-shadow: 0 0 0 4px #fff1cd; animation: pinAppear .5s cubic-bezier(.18,.8,.25,1.1) .2s both; }
+.stopPin i { position: absolute; top: 12px; left: 1px; width: 9px; height: 14px; background: #c89143; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.trackScale { display: flex; justify-content: space-between; color: #a0a9b6; font-size: 10px; font-weight: 800; }
+.trackLegend { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 28px; margin-top: 10px; color: #7b8493; font-size: 12px; font-weight: 800; }
+.trackLegend > span { display: inline-flex; align-items: center; gap: 7px; }
+.trackLegend strong { color: #566a8a; font-family: var(--font-display), sans-serif; font-size: 19px; font-weight: 500; }
+.targetKey, .stopKey { display: inline-block; width: 11px; height: 11px; border-radius: 3px; background: #a7bd9b; }
+.stopKey { border-radius: 50%; background: #f5c76b; }
+.summaryList { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 14px; margin: 32px 0; text-align: left; }
+.summaryCard { padding: 15px; border: 1px solid #dfe5ee; border-radius: 18px; background: #fffdf7; }
+.summaryHeading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 12px; color: #7e89a0; font-size: 10px; font-weight: 900; letter-spacing: .4px; }
+.summaryHeading strong { color: #916b38; font-size: 12px; letter-spacing: 0; }
+.miniTrack { margin-top: 7px; }
+.miniTrack .trackGraphic { --rail-top: 24px; height: 51px; }
+.miniTrack .targetPin { top: 1px; height: 26px; }
+.miniTrack .targetPin, .miniTrack .stopPin, .miniTrack .trackGap { animation: none; }
+.roomPreview { padding: 12px 16px 7px; background: #fffdf7; }
+.roomWaiting { display: grid; place-items: center; gap: 1px; padding: 9px; color: #7b86a3; font-size: 11px; font-weight: 800; }
+.roomWaiting svg { width: 85px; height: 76px; }
+.summaryCard p { margin: 4px 0 0; color: #586c90; font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 500; }
+.summaryCard p small { display: block; color: #8994a3; font-family: var(--font-body), sans-serif; font-size: 10px; font-weight: 700; }
+@keyframes pinAppear { from { opacity: 0; transform: translate(-50%, 12px) scale(.6); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+@keyframes gapAppear { from { opacity: 0; transform: scaleX(.1); transform-origin: left; } to { opacity: 1; transform: scaleX(1); transform-origin: left; } }
+.replayButton { margin: 0 auto; }
+@media (max-width: 740px) {
+  .intro { grid-template-columns: 1fr; gap: 30px; }
+  .clockCard { min-height: 260px; }
+  .clockCard svg { width: min(58%, 245px); }
+  .missionBody { grid-template-columns: minmax(0, 1fr) 170px; }
+  .missionBuddy, .missionTarget { min-height: 245px; }
+  .clockFace { width: 130px; height: 130px; }
+  .clockFace svg { width: 120px; height: 120px; }
+  .revealTop { grid-template-columns: 85px 1fr; gap: 14px; }
+  .revealMascot { width: 80px; height: 87px; }
+  .revealMascot svg { width: 76px; height: 70px; }
+  .scoreSticker { grid-column: 1 / -1; justify-self: end; margin-top: -8px; }
+  .revealCard { padding: 20px; }
+}
+@media (max-width: 500px) {
+  .missionCard { padding: 15px; }
+  .missionHeader { padding: 2px 1px 13px; font-size: 9px; }
+  .missionBody { grid-template-columns: minmax(0, 1fr) 105px; gap: 9px; }
+  .missionTarget, .missionBuddy { min-height: 210px; border-radius: 18px; }
+  .missionTarget { padding: 19px 17px; }
+  .missionTarget::after { right: -76px; bottom: -108px; }
+  .targetLabel { font-size: 9px; letter-spacing: 1px; }
+  .targetNumber { gap: 0 7px; }
+  .targetNumber strong { font-size: 94px; }
+  .targetNumber span { font-size: 19px; }
+  .missionTarget p { font-size: 10px; }
+  .clockFace { width: 86px; height: 86px; box-shadow: 0 4px 0 #cbd5e9, 0 0 0 6px #dce5f5; }
+  .clockFace svg { width: 84px; height: 84px; }
+  .missionSparkle { top: 15px; right: 14px; font-size: 19px; }
+  .clockBubble { right: 5px; bottom: 20px; padding: 5px 6px; font-size: 8px; }
+  .missionFooter { align-items: stretch; flex-direction: column; gap: 15px; padding: 20px 2px 2px; }
+  .missionFooter button { flex: auto; width: 100%; }
+  .revealMascot > span { display: none; }
+  .verdict h2 { font-size: 30px; }
+  .scoreSticker { min-width: 95px; padding: 9px 11px; }
+  .scoreSticker strong { font-size: 23px; }
+  .timeTrack { padding: 13px 10px; }
+  .trackLegend { justify-content: space-between; gap: 8px; font-size: 10px; }
+  .trackLegend strong { font-size: 16px; }
+}

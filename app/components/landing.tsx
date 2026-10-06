@@ -152,8 +152,10 @@ export default function Landing() {
         <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Got it <Icon kind="arrow" /></button>
       </> : game ? <>
         <div className={`${styles.modalArt} ${styles[game.kind]}`}><Illustration kind={game.kind} /></div>
-        <span className={styles.modalEyebrow}>{game.kind === "split" || game.kind === "grid" ? "TRY SOLO PRACTICE" : "ON THE WAY"}</span><h2 id="dialog-title">{game.name}</h2><p className={styles.modalDescription}>{game.description}</p>
-        {game.kind === "split" || game.kind === "grid" ? <Link className={`${styles.submitButton} ${styles.practiceLink}`} href={game.kind === "split" ? "/play/split-it" : "/play/flash-grid"}>Try {game.name} <Icon kind="arrow" /></Link> : <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Sounds about right <Icon kind="arrow" /></button>}
+        <span className={styles.modalEyebrow}>{game.kind === "mirror" ? "ON THE WAY" : "TRY SOLO PRACTICE"}</span><h2 id="dialog-title">{game.name}</h2><p className={styles.modalDescription}>{game.description}</p>
+        {game.kind !== "mirror" ? <Link className={`${styles.submitButton} ${styles.practiceLink}`}
+          href={game.kind === "split" ? "/play/split-it" : game.kind === "grid" ? "/play/flash-grid" : "/play/internal-clock"}>
+          Try {game.name} <Icon kind="arrow" /></Link> : <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Sounds about right <Icon kind="arrow" /></button>}
       </> : modal === "host" || modal === "join" ? <>
         <span className={styles.modalEyebrow}>LET’S GET YOU READY</span>
         <h2 id="dialog-title">{modal === "host" ? "Your party starts here." : "Come on in."}</h2>

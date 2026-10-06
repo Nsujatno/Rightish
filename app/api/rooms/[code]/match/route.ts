@@ -1,4 +1,5 @@
 import { gameRoundIndex, matchRoundCount, selectGame, type GameId } from "@/lib/games/registry";
+import { roomClockElapsedMs, type InternalClockChallenge } from "@/lib/games/internal-clock";
 import { gameOptionsFor, getGame, needsDatabaseSettingsUpgrade, parseMatchSettings, settingsForDatabase } from "@/lib/games/settings";
 import type { MatchSettings } from "@/lib/games/types";
 import { getServerSupabase } from "@/lib/supabase/server";
@@ -15,6 +16,7 @@ function newRound(settings: MatchSettings<GameId>, roundIndex: number) {
 }
 
 export async function POST(request: Request, context: Context) {
+  const receivedAtMs = Date.now();
   return handleRoomRequest(async () => {
     const playerId = await requirePlayer(request);
     const { code: rawCode } = await context.params;
@@ -59,7 +61,17 @@ export async function POST(request: Request, context: Context) {
       const game = getGame(match.gameId);
       const settings = parseMatchSettings(match.settings);
       if (!game || !settings) throw new RoomError(503, "INVALID_ROUND", "This challenge couldn’t be loaded.");
-      const answer = body.answer ?? null;
+      let answer = body.answer ?? null;
+      if (match.gameId === "internal-clock") {
+        if (body.answer !== "stop" || !body.confirm) {
+          throw new RoomError(400, "INVALID_ANSWER", "Press Stop to lock in your time.");
+        }
+        if (receivedAtMs < Date.parse(match.startsAt)) {
+          throw new RoomError(409, "ROUND_NOT_STARTED", "Wait for the countdown to finish.");
+        }
+        answer = roomClockElapsedMs(match.startsAt, receivedAtMs,
+          (match.challenge as InternalClockChallenge).targetSeconds);
+      }
       if (match.gameId === "flash-grid" && Date.now() < Date.parse(match.startsAt) +
         (Number((match.challenge as { studySeconds?: number }).studySeconds) || 0) * 1000) {
         throw new RoomError(409, "ROUND_NOT_STARTED", "The lights are still showing. Wait until it’s time to choose.");

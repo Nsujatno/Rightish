@@ -46,7 +46,7 @@ export function parseMatchSettings(input: unknown): MatchSettings<GameId> | null
       (roundCount as number) > game.limits.maxRounds ||
       !Number.isInteger(durationSeconds) || (durationSeconds as number) < game.limits.minDurationSeconds ||
       (durationSeconds as number) > game.limits.maxDurationSeconds || !game.validateOptions(options)) return null;
-    if (id === "flash-grid" && (!options || typeof options !== "object" ||
+    if ((id === "flash-grid" || id === "internal-clock") && (!options || typeof options !== "object" ||
       !("rounds" in options) || !Array.isArray(options.rounds) || options.rounds.length !== roundCount ||
       durationSeconds !== game.defaultDurationSeconds)) return null;
     gameSettings[id] = { roundCount: roundCount as number, durationSeconds: durationSeconds as number, options };

@@ -14,14 +14,21 @@ import { SplitItReveal } from "./split-it/reveal";
 import { FlashGridRoomRound, FlashGridRoomReveal } from "./flash-grid-room";
 import { scoreFlashGrid, type FlashGridChallenge, type FlashGridResult } from "@/lib/games/flash-grid";
 import { FlashGridBoard } from "./solo-flash-grid";
+import { internalClock } from "@/lib/games/internal-clock-room";
+import { formatClockSeconds, internalClockRoundLimitMs, type InternalClockChallenge, type InternalClockResult } from "@/lib/games/internal-clock";
+import { clockVerdict } from "./internal-clock-presentation";
+import { InternalClockCountdown, InternalClockRoomPreview, InternalClockRoomReveal, InternalClockRoomRound, InternalClockRoomWaiting } from "./internal-clock-room";
 
 export type RoomGameView = {
   prompt: (options: unknown) => string;
   CountdownArt?: ComponentType<{ count: number }>;
   countdownLabel?: string;
+  countdownTitle?: string;
+  countdownDescription?: (challenge: unknown) => string;
+  countdownGoal?: (challenge: unknown) => string;
   Round: ComponentType<{ challenge: unknown; options: unknown; initialAnswer: unknown;
     onAnswerChange: (value: unknown | null) => void; onConfirm: () => void; serverNow: number; startsAt: string }>;
-  heading?: (challenge: unknown, serverNow: number, startsAt: string) => { eyebrow: string; title: string; description: string; seconds: number };
+  heading?: (challenge: unknown, serverNow: number, startsAt: string) => { eyebrow: string; title: string; description: string; seconds?: number };
   result: (challenge: unknown, value: unknown, options: unknown) => ScoredResult;
   preview: (challenge: unknown, result: ScoredResult) => ReactNode;
   waitingPreview?: (challenge: unknown) => ReactNode;
@@ -30,6 +37,7 @@ export type RoomGameView = {
   exact: (result: ScoredResult, options: unknown) => boolean;
   exactBadge: (options: unknown) => string;
   exactMessage?: string;
+  exactDetail?: string;
 };
 
 function splitOptions(value: unknown): SplitItOptions {
@@ -116,9 +124,53 @@ const flashGridView: RoomGameView = {
   exactMessage: "Grid genius!",
 };
 
+const internalClockView: RoomGameView = {
+  CountdownArt: InternalClockCountdown,
+  countdownLabel: "NO WATCHES. JUST VIBES.",
+  countdownTitle: "Ready your inner clock.",
+  countdownDescription(challenge) {
+    return `Aim for ${(challenge as InternalClockChallenge).targetSeconds} seconds. The hidden clock starts when this countdown ends.`;
+  },
+  countdownGoal(challenge) {
+    return `TARGET · ${(challenge as InternalClockChallenge).targetSeconds} SECONDS`;
+  },
+  prompt: () => "Stop the hidden clock when the target time feels right.",
+  heading() {
+    return { eyebrow: "ROUND OF QUESTIONABLE TIMING", title: "Is it time yet?",
+      description: "Everyone started together. Stop when the target feels right." };
+  },
+  Round: function InternalClockRoundView({ challenge, onAnswerChange, onConfirm }) {
+    return <InternalClockRoomRound challenge={challenge as InternalClockChallenge}
+      onAnswerChange={onAnswerChange} onConfirm={onConfirm} />;
+  },
+  result(challenge, value) {
+    return value && typeof value === "object" && "score" in value ? value as InternalClockResult
+      : internalClock.score(challenge as InternalClockChallenge, null);
+  },
+  preview(challenge, result) {
+    return <InternalClockRoomPreview result={result as InternalClockResult} />;
+  },
+  waitingPreview(challenge) {
+    return <InternalClockRoomWaiting challenge={challenge as InternalClockChallenge} />;
+  },
+  summary(result) {
+    const clock = result as InternalClockResult;
+    return clock.elapsedMs >= internalClockRoundLimitMs(clock.targetMs / 1000)
+      ? "No stop submitted" : clockVerdict(clock);
+  },
+  detail(challenge, result, nickname) {
+    return <InternalClockRoomReveal result={result as InternalClockResult} nickname={nickname} />;
+  },
+  exact(result) { return (result as InternalClockResult).score >= 980; },
+  exactBadge() { return `${formatClockSeconds(100)}s off or less`; },
+  exactMessage: "Clock wizard!",
+  exactDetail: "Your brain brought its own stopwatch.",
+};
+
 // A new playable game adds one typed rules entry and one view entry. The room
 // engine, server validation, timing, and standings then stay the same.
 export const roomGameViews: Record<GameId, RoomGameView> = {
   "split-it": splitItView,
   "flash-grid": flashGridView,
+  "internal-clock": internalClockView,
 };

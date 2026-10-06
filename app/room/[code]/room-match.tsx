@@ -154,13 +154,15 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
     {error && <p className={styles.error} role="alert">{error}<button className={styles.retryButton} onClick={() => void refresh()}>Refresh room</button></p>}
 
     {match.phase === "playing" && countdown > 0 && <>
-      <RoundHeading eyebrow="SAME ROUND. SAME MOMENT." title="Get your eyes ready." description={`Round ${match.roundIndex + 1} is about to begin.`} />
+      <RoundHeading eyebrow="SAME ROUND. SAME MOMENT." title={view.countdownTitle ?? "Get your eyes ready."}
+        description={view.countdownDescription?.(match.challenge) ?? `Round ${match.roundIndex + 1} is about to begin.`} />
       <div className={styles.countdownPanel} role="status" aria-live="polite">
         <span className={styles.countdownEyebrow}>{view.countdownLabel ?? "READY TO PLAY"}</span>
         <div className={styles.countdownStage}>
           {CountdownArt ? <CountdownArt count={countdown} />
             : <strong key={countdown} className={styles.countdownFallback}>{countdown}</strong>}
         </div>
+        {view.countdownGoal && <strong className={styles.countdownGoal}>{view.countdownGoal(match.challenge)}</strong>}
         <div className={styles.countdownSteps} aria-hidden="true">
           {[3, 2, 1].map((step) => <i key={step} data-current={step === countdown} data-done={step > countdown} />)}
         </div>
@@ -171,7 +173,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
     {match.phase === "playing" && countdown === 0 && <>
       <RoundHeading eyebrow={heading?.eyebrow ?? `ROUND ${match.roundIndex + 1} · GO WITH YOUR GUT`}
         title={heading?.title ?? `${gameTitle}.`}
-        description={heading?.description ?? view.prompt(options)} seconds={heading?.seconds ?? seconds} />
+        description={heading?.description ?? view.prompt(options)} seconds={heading ? heading.seconds : seconds} />
       {match.myConfirmed || locking ? <section className={styles.waitingCard} aria-live="polite">
         <span className={styles.waitingArt} aria-hidden="true">✦</span>
         <h2>Answer locked in.</h2>
@@ -188,7 +190,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
 
     {match.phase === "reveal" && <>
       {exact && <Celebration key={`${match.id}:${match.roundIndex}`} message={view.exactMessage ?? "Perfect target!"}
-        badge={view.exactBadge(options)} detail="Your eyeballs deserve a tiny trophy." />}
+        badge={view.exactBadge(options)} detail={view.exactDetail ?? "Your eyeballs deserve a tiny trophy."} />}
       <RoundHeading eyebrow="THE MOMENT OF ALMOST-TRUTH" title="The answers are in."
         description="Pick a friend’s card to see how their guess landed." />
       <RoundResults key={match.roundIndex} players={results} currentPlayerId={snapshot.currentPlayerId}
