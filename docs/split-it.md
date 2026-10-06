@@ -19,6 +19,7 @@ future recipes can coexist with reproducible older challenges.
 ## Input and scoring
 
 - Place the first anchor with a click/tap, aim, and place a second anchor.
+- On touch screens, board taps place anchors on release. Swipes outside the numbered handles scroll without changing the guess; handles still support direct dragging. Pinch zoom is allowed away from the handles.
 - The two points define a straight line extended across the entire shape.
 - Drag either numbered handle to adjust. Start over resets the attempt.
 - Confirm locks the answer; percentages and scores stay hidden until reveal.

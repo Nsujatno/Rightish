@@ -123,3 +123,41 @@
   .trackLegend { justify-content: space-between; gap: 8px; font-size: 10px; }
   .trackLegend strong { font-size: 16px; }
 }
+@media (max-width: 650px) {
+  .intro { grid-template-columns: 1fr; gap: 16px; margin: 0 0 16px; }
+  .clockCard { min-height: 140px; width: 170px; justify-self: center; border-radius: 22px; }
+  .clockCard svg { width: 110px; filter: drop-shadow(0 5px 0 #a5b4d17a); }
+  .clockCard > span { font-size: 8px; bottom: 9px; right: 11px; }
+  .introCopy h2 { font-size: 25px; margin: 8px 0 14px; }
+  .introCopy h2 br { display: none; }
+  .introCopy ol { gap: 11px; }
+  .introCopy li { font-size: 12px; gap: 10px; }
+  .introCopy > p { margin: 15px 0; font-size: 11px; }
+  .missionCard { margin: 5px auto 16px; padding: 14px; }
+  .missionHeader { padding-bottom: 12px; font-size: 8px; letter-spacing: .7px; }
+  .missionStatus { font-size: 8px; padding: 6px 8px; }
+  .missionBody { grid-template-columns: minmax(0, 1fr) 105px; gap: 10px; }
+  .missionTarget, .missionBuddy { min-height: 180px; border-radius: 18px; }
+  .missionTarget { padding: 16px; }
+  .targetNumber strong { font-size: 80px; }
+  .targetNumber span { font-size: 18px; }
+  .targetLabel { font-size: 8px; letter-spacing: .5px; }
+  .missionTarget p { font-size: 10px; }
+  .clockFace { width: 84px; height: 84px; box-shadow: 0 4px 0 #cbd5e9, 0 0 0 5px #dce5f5; }
+  .clockFace svg { width: 80px; height: 80px; }
+  .clockBubble { font-size: 8px; right: 5px; bottom: 15px; padding: 5px; }
+  .missionFooter { padding: 14px 2px 2px; }
+  .missionFooter p { font-size: 10px; }
+  .missionFooter p strong { font-size: 17px; }
+  .revealCard { padding: 16px; gap: 14px; }
+  .revealTop { grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+  .revealMascot { display: none; }
+  .verdict h2 { font-size: 25px; }
+  .verdict p { font-size: 11px; }
+  .scoreSticker { grid-column: auto; margin-top: 0; padding: 9px 11px; min-width: 88px; }
+  .scoreSticker strong { font-size: 23px; }
+  .timeTrack { padding: 12px 10px; }
+  .summaryList { gap: 9px; margin: 18px 0; }
+  .summaryCard { padding: 12px; }
+  .summaryCard p { font-size: 18px; }
+}

@@ -53,22 +53,25 @@
 .roomResult .scoreSticker strong { font-size: 31px; }
 @keyframes pop { from { transform: scale(.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (max-width: 650px) {
-  .introArt { width: min(100%, 310px); justify-self: center; padding: 18px; border-radius: 26px; }
-  .introArt svg { max-width: 215px; }
-  .introArt > span { font-size: 20px; }
-  .boardFrame { border-radius: 23px; }
-  .targetBanner { padding: 15px 18px; }
-  .targetBanner strong { font-size: 48px; }
+  .introArt { width: 170px; justify-self: center; padding: 10px; border-radius: 22px; }
+  .introArt svg { max-width: 130px; }
+  .introArt > span { font-size: 15px; }
+  .boardFrame { width: min(100%, 350px); border-radius: 23px; }
+  .targetBanner { padding: 12px 18px; }
+  .targetBanner strong { font-size: 42px; }
   .targetBanner > span:first-child { font-size: 9px; max-width: 72px; }
   .targetAside { font-size: 10px; }
-  .playArea > button { width: 100%; }
   .revealLayout { grid-template-columns: 1fr; gap: 15px; }
-  .revealLayout .boardFrame { max-width: 390px; justify-self: center; }
-  .resultPanel { padding: 10px 8px; }
-  .comparison { margin-top: 10px; }
-  .comparison strong { font-size: 33px; }
-  .scoreSticker { padding: 13px 25px; }
-  .scoreSticker strong { font-size: 34px; }
-  .history { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .revealLayout .boardFrame, .roomReveal .boardFrame { max-width: 300px; justify-self: center; margin: auto; }
+  .resultPanel { padding: 5px 8px; }
+  .comparison { margin: 10px 0 12px; }
+  .comparison strong { font-size: 30px; }
+  .scoreSticker { padding: 11px 23px; }
+  .scoreSticker strong { font-size: 30px; }
+  .error { font-size: 20px; margin-bottom: 14px; }
+  .scoringNote { margin-top: 15px; font-size: 10px; }
+  .boardFooter, .legend { padding: 11px 14px; font-size: 10px; }
+  .history { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 18px 0; }
+  .history > div { padding: 12px 8px; gap: 7px; }
   .history > div:last-child { grid-column: 1 / -1; }
 }

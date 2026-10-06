@@ -187,4 +187,16 @@ label.gameChoiceMain { cursor: pointer; }
   .readyBar { flex-direction: column; align-items: stretch; }
   .hostNote p { max-width: 180px; }
 }
+@media (max-width: 650px) {
+  .countdownPanel { min-height: 280px; margin: 8px auto 20px; padding: 18px; gap: 7px; }
+  .countdownStage { width: 170px; height: 160px; }
+  .countdownEyebrow { font-size: 8px; }
+  .countdownGoal { font-size: 10px; }
+  .waitingCard { padding: 20px 16px; margin-top: 8px; }
+  .waitingCard h2 { font-size: 26px; }
+  .waitingCard p { font-size: 11px; }
+  .waitingArt { font-size: 31px; margin-bottom: 8px; }
+  .finalMatchCard { padding: 16px; }
+  .finalMatchCard > p { margin: 16px 0; }
+}
 .page[data-paused="true"] * { animation: none !important; transition: none !important; }

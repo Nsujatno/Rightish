@@ -5,6 +5,7 @@ import {
   internalClockRoundLimitMs, type InternalClockChallenge, type InternalClockResult,
 } from "@/lib/games/internal-clock";
 import { clockVerdict, TimeTrack } from "./internal-clock-presentation";
+import { GameActions } from "./game-shell";
 import games from "./games.module.css";
 import styles from "./internal-clock.module.css";
 
@@ -50,7 +51,7 @@ export function InternalClockRoomRound({ challenge, onAnswerChange, onConfirm }:
     </div>
     <div className={styles.missionFooter}>
       <p><strong>Trust that feeling.</strong><span>Everyone’s hidden clock started together.</span></p>
-      <button className={games.primaryButton} type="button" onClick={stop}>Stop the clock <span>■</span></button>
+      <GameActions><button className={games.primaryButton} type="button" onClick={stop}>Stop the clock <span>■</span></button></GameActions>
     </div>
   </section>;
 }

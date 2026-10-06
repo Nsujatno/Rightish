@@ -41,3 +41,7 @@ export function RoundHeading({ eyebrow, title, description, seconds }: {
     </div>}
   </div>;
 }
+
+export function GameActions({ children }: { children: ReactNode }) {
+  return <div className={`${styles.actionSlot} ${styles.mobileActions}`}>{children}</div>;
+}

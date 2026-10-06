@@ -7,7 +7,7 @@ import {
   type InternalClockResult,
 } from "@/lib/games/internal-clock";
 import { Celebration } from "./celebration";
-import { GameShell, RoundHeading } from "./game-shell";
+import { GameActions, GameShell, RoundHeading } from "./game-shell";
 import { clockVerdict, TimeTrack } from "./internal-clock-presentation";
 import games from "./games.module.css";
 import styles from "./internal-clock.module.css";
@@ -78,7 +78,7 @@ export default function SoloInternalClock() {
             <li><b>3</b><span>Press Stop when you think that time has passed.</span></li>
           </ol>
           <p>Five quick targets, from 3 to 8 seconds. Each second off costs 200 points. The clock stops itself five seconds after the target.</p>
-          <button className={games.primaryButton} type="button" onClick={() => setPhase("ready")}>Let’s play <span>↗</span></button>
+          <GameActions><button className={games.primaryButton} type="button" onClick={() => setPhase("ready")}>Let’s play <span>↗</span></button></GameActions>
         </div>
       </section>
     </>}
@@ -107,9 +107,9 @@ export default function SoloInternalClock() {
         <div className={styles.missionFooter}>
           <p><strong>{phase === "running" ? "Trust that feeling." : "No ticking, no tricks."}</strong>
             <span>{phase === "running" ? "There are no clues—just your sense of time." : "The invisible clock starts when you press Start."}</span></p>
-          <button className={games.primaryButton} type="button" onClick={phase === "running" ? stop : start}>
+          <GameActions><button className={games.primaryButton} type="button" onClick={phase === "running" ? stop : start}>
             {phase === "running" ? "Stop the clock" : "Start the clock"}<span>{phase === "running" ? "■" : "↗"}</span>
-          </button>
+          </button></GameActions>
         </div>
       </section>
     </>}
@@ -129,7 +129,7 @@ export default function SoloInternalClock() {
         </div>
         <TimeTrack round={result} />
       </section>
-      <div className={games.continueBar}><p>{roundIndex + 1 === INTERNAL_CLOCK_TARGETS.length ? "That was the last target." : "Think you can get closer next time?"}</p>
+      <div className={`${games.continueBar} ${games.mobileActions}`}><p>{roundIndex + 1 === INTERNAL_CLOCK_TARGETS.length ? "That was the last target." : "Think you can get closer next time?"}</p>
         <button className={games.primaryButton} type="button" onClick={next}>{roundIndex + 1 === INTERNAL_CLOCK_TARGETS.length ? "Final score" : "Next target"}<span>↗</span></button></div>
     </>}
 
@@ -146,7 +146,7 @@ export default function SoloInternalClock() {
           <TimeTrack round={round} compact />
           <p>{clockVerdict(round)} <small>Your stop: {formatClockSeconds(round.elapsedMs)}s</small></p>
         </div>)}</div>
-        <button className={`${games.primaryButton} ${styles.replayButton}`} type="button" onClick={replay}>Try those times again <span>↗</span></button>
+        <GameActions><button className={`${games.primaryButton} ${styles.replayButton}`} type="button" onClick={replay}>Try those times again <span>↗</span></button></GameActions>
       </section>
     </>}
   </GameShell>;

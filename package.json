@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:games": "node --test tests/game-rules.test.cjs tests/room-match.test.cjs"
+    "test:games": "node --test tests/game-rules.test.cjs tests/room-match.test.cjs tests/split-it-input.test.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

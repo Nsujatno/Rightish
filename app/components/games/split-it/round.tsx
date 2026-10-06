@@ -35,6 +35,7 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
   const [drawing, setDrawing] = useState(false);
   const [message, setMessage] = useState("Click or tap to place your first anchor.");
   const gesture = useRef<Gesture | null>(null);
+  const tap = useRef<{ pointerId: number; x: number; y: number; moved: boolean } | null>(null);
 
   function point(event: PointerEvent<SVGSVGElement>): Point {
     const matrix = event.currentTarget.getScreenCTM();
@@ -61,11 +62,17 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
   }
 
   function down(event: PointerEvent<SVGSVGElement>) {
-    if (!event.isPrimary || event.button !== 0 || gesture.current) return;
+    if (!event.isPrimary || event.button !== 0 || gesture.current || tap.current) return;
+    const endpoint = (event.target as Element).closest("[data-anchor]")?.getAttribute("data-anchor");
+    // A touch on the board may be a scroll. Only handles claim touch drags;
+    // other touches place an anchor after a stationary tap is released.
+    if (event.pointerType === "touch" && !endpoint) {
+      tap.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+      return;
+    }
     event.preventDefault();
     event.currentTarget.focus({ preventScroll: true });
     const position = point(event);
-    const endpoint = (event.target as Element).closest("[data-anchor]")?.getAttribute("data-anchor");
 
     if (!firstAnchor && cut && (endpoint === "a" || endpoint === "b")) {
       gesture.current = { pointerId: event.pointerId, kind: "endpoint", base: cut, endpoint,
@@ -86,10 +93,14 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
   }
 
   function move(event: PointerEvent<SVGSVGElement>) {
+    if (tap.current?.pointerId === event.pointerId) {
+      tap.current.moved ||= Math.hypot(event.clientX - tap.current.x, event.clientY - tap.current.y) > 10;
+      return;
+    }
     const current = gesture.current;
     const position = point(event);
     if (!current) {
-      if (firstAnchor && event.isPrimary) {
+      if (firstAnchor && event.isPrimary && event.pointerType !== "touch") {
         const candidate = { a: firstAnchor, b: position };
         setDraft(isCut(candidate) ? candidate : null);
       }
@@ -106,6 +117,25 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
   }
 
   function up(event: PointerEvent<SVGSVGElement>) {
+    const pendingTap = tap.current;
+    if (pendingTap?.pointerId === event.pointerId) {
+      tap.current = null;
+      if (pendingTap.moved || Math.hypot(event.clientX - pendingTap.x, event.clientY - pendingTap.y) > 10) return;
+      event.currentTarget.focus({ preventScroll: true });
+      const position = point(event);
+      if (firstAnchor) {
+        const candidate = { a: firstAnchor, b: position };
+        if (!apply(candidate)) {
+          setDraft(isCut(candidate) ? candidate : null);
+          setMessage("The line needs to cross the shape. Choose another spot for anchor 2.");
+        }
+      } else {
+        setFirstAnchor(position);
+        setDraft(null);
+        setMessage("First anchor placed. Tap on the other side to set the line.");
+      }
+      return;
+    }
     const current = gesture.current;
     if (current?.pointerId !== event.pointerId) return;
     const position = point(event);
@@ -128,6 +158,7 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
   }
 
   function cancel(event: PointerEvent<SVGSVGElement>) {
+    if (tap.current?.pointerId === event.pointerId) { tap.current = null; return; }
     const current = gesture.current;
     if (current?.pointerId !== event.pointerId) return;
     gesture.current = null;
@@ -181,7 +212,7 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
       <svg viewBox="0 0 1000 1000" className={`${styles.shapeSvg} ${styles.interactive}`} tabIndex={0}
         role="group" aria-label="Cutting board" aria-describedby="anchor-help cut-help"
         onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onLostPointerCapture={cancel}
-        onPointerLeave={() => { if (!gesture.current && firstAnchor) setDraft(null); }} onKeyDown={keyboard}>
+        onPointerLeave={() => { tap.current = null; if (!gesture.current && firstAnchor) setDraft(null); }} onKeyDown={keyboard}>
         <ShapeDrawing challenge={challenge} cut={shownCut} cutState={firstAnchor || drawing ? "preview" : "anchored"} />
         {firstAnchor ? <>
           {draft && <Anchor point={draft.b} label="2" endpoint="b" preview />}
@@ -191,11 +222,11 @@ export function SplitItRound({ challenge, onAnswerChange, onConfirm, targetPerce
       <span className={styles.boardBadge}>{targetPercent} / {100 - targetPercent} ?</span>
     </div>
     <p className={styles.feedback} role="status">{message}</p>
-    <div className={styles.controls}>
+    <div className={`${styles.controls} ${styles.mobileActions}`}>
       <button className={styles.secondaryButton} onClick={clear} disabled={(!cut && !firstAnchor) || drawing}>↶ Start over</button>
       <button className={styles.primaryButton} onClick={onConfirm} disabled={!cut || !!firstAnchor || drawing}>Lock it in <span>↗</span></button>
     </div>
-    <p className={styles.help} id="anchor-help">Place two anchors. Drag either to adjust. At zero, your latest valid cut counts.</p>
+    <p className={styles.help} id="anchor-help">Tap to place anchors. Drag a numbered handle to adjust. Swipe elsewhere to scroll. At zero, your latest valid cut counts.</p>
     <details className={styles.keyboardHelp}><summary>Playing with a keyboard?</summary><p id="cut-help">Focus the board. Arrow keys move the cut; Q / E rotate it. Hold Shift for smaller moves. Enter locks it in; Escape starts over.</p></details>
   </>;
 }

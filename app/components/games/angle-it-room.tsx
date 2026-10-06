@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Illustration } from "@/app/components/art";
 import { ANGLE_IT_START, isAngleItAnswer, type AngleItChallenge, type AngleItResult } from "@/lib/games/angle-it";
 import { AngleItBoard } from "./angle-it-board";
+import { GameActions } from "./game-shell";
 import games from "./games.module.css";
 import styles from "./angle-it.module.css";
 
@@ -47,7 +48,7 @@ export function AngleItRoomRound({ challenge, initialAnswer, onAnswerChange, onC
       <div className={styles.boardFooter}><span className={styles.peachDot} />The shaded bit is your angle.</div>
     </div>
     <p className={games.feedback}>{expired ? touched ? "Time’s up. Checking your saved guess." : "Time’s up. No angle saved this round." : touched ? "Looking right-ish? You can keep tweaking." : "Grab the round handle and give it a go."}</p>
-    <button className={games.primaryButton} type="button" onClick={onConfirm} disabled={!touched || expired}>Lock in my angle <span>↗</span></button>
+    <GameActions><button className={games.primaryButton} type="button" onClick={onConfirm} disabled={!touched || expired}>Lock in my angle <span>↗</span></button></GameActions>
     <details className={games.keyboardHelp}><summary>Playing with a keyboard?</summary><p>Tab to the board. Arrow keys turn the hand; hold Shift for bigger turns. Home and End move to either end of the arc.</p></details>
   </section>;
 }

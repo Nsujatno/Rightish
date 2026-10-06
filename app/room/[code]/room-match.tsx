@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Celebration } from "@/app/components/games/celebration";
-import { GameShell, RoundHeading } from "@/app/components/games/game-shell";
+import { GameActions, GameShell, RoundHeading } from "@/app/components/games/game-shell";
 import { RoundResults, Standings } from "@/app/components/games/round-results";
 import { roomGameViews } from "@/app/components/games/room-game-views";
 import { gameCatalog, matchRoundCount } from "@/lib/games/registry";
@@ -199,7 +199,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
         renderSummary={(result) => view.summary(result)}
         renderDetail={(player) => view.detail(match.challenge, player.result, player.nickname, options)} />
       <Standings players={results} currentPlayerId={snapshot.currentPlayerId} />
-      <div className={games.continueBar}>
+      <div className={`${games.continueBar} ${games.mobileActions}`}>
         <p>{isHost ? "Take it in. You set the pace." : "The host will start the next part when everyone’s ready."}</p>
         {isHost && <button className={games.primaryButton} onClick={() => void act("next")} disabled={busy}>
           {match.roundIndex + 1 === matchRoundCount(match.settings) ? "Final scores" : "Next round"} <span>↗</span>
@@ -214,7 +214,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
         <span className={styles.eyebrow}>FINAL STANDINGS</span>
         <Standings players={results} currentPlayerId={snapshot.currentPlayerId} />
         <p>{isHost ? "Same room, fresh challenges. You can tweak the settings before the rematch." : "The host can bring everyone back to the lobby for another match."}</p>
-        {isHost && <button className={games.primaryButton} onClick={() => void act("rematch")} disabled={busy}>Back to lobby <span>↗</span></button>}
+        {isHost && <GameActions><button className={games.primaryButton} onClick={() => void act("rematch")} disabled={busy}>Back to lobby <span>↗</span></button></GameActions>}
       </section>
     </>}
   </GameShell>;

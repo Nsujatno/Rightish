@@ -50,14 +50,14 @@
 .primaryButton:disabled, .secondaryButton:disabled { opacity: .45; cursor: default; box-shadow: none; }
 .playBoard { width: min(100%, 470px); margin: 0 auto; overflow: hidden; box-shadow: 0 5px 0 #e7ddc65c; }
 .shapeSvg { display: block; width: 100%; aspect-ratio: 1; overflow: hidden; }
-.interactive { touch-action: none; user-select: none; cursor: crosshair; border-radius: 30px; }
+.interactive { touch-action: pan-y pinch-zoom; user-select: none; cursor: crosshair; border-radius: 30px; }
 .interactive:focus-visible { outline-offset: -5px; }
 .shapeOutline { stroke: #514d3b; stroke-width: 4; stroke-linejoin: round; }
 .cutLine { stroke: #505d4a; stroke-width: 5; stroke-dasharray: 13 10; pointer-events: none; }
 .previewLine { stroke: #7d8870; stroke-width: 5; stroke-dasharray: 13 10; pointer-events: none; }
 .guideLine { stroke: #8b957c; stroke-width: 4; stroke-dasharray: 10 12; pointer-events: none; }
 .anchoredLine { stroke: #4f5d46; stroke-width: 6; stroke-linecap: round; pointer-events: none; }
-.anchor { cursor: grab; }
+.anchor { cursor: grab; touch-action: none; }
 .anchor:active { cursor: grabbing; }
 .anchorHit { fill: transparent; }
 .anchorHalo { fill: #fffaf0aa; pointer-events: none; }
@@ -135,6 +135,7 @@
 .history strong { display: block; font-family: var(--font-display), sans-serif; font-size: 24px; font-weight: 500; }
 .history small { font-family: var(--font-body), sans-serif; font-size: 9px; color: #8d8e77; font-weight: 700; }
 .finalActions { display: flex; justify-content: center; gap: 15px; }
+.actionSlot { display: contents; }
 .shareButton { background: none; border: none; color: #788865; font-size: 12px; font-weight: 800; padding: 15px; margin-top: 12px; min-height: 44px; text-decoration: underline; text-decoration-color: #b6c2a0; text-underline-offset: 4px; }
 .copyMessage { overflow-wrap: anywhere; font-size: 11px !important; color: #6d805a !important; margin-bottom: 0; }
 .footer { text-align: center; padding: 25px 20px 35px; font-size: 11px; font-weight: 600; font-style: italic; color: #96977f; }
@@ -266,6 +267,69 @@
   .finalActions { flex-direction: column; gap: 14px; }
   .finalActions .secondaryButton { justify-content: center; }
   .footer { font-size: 10px; }
+}
+@media (max-width: 650px) {
+  .page:has(.mobileActions button) { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+  .header { padding: 12px 16px; gap: 8px; }
+  .wordmark { font-size: 28px; }
+  .practiceLabel { font-size: 9px; padding: 6px 9px; }
+  .backLink, .backLinkButton { font-size: 10px; }
+  .main { padding: 0 16px 16px; }
+  .matchBar { padding-block: 10px; font-size: 8px; }
+  .roundDots:has(i:nth-child(11)) { display: none; }
+  .heading { margin: 16px 0 14px; gap: 12px; }
+  .heading h1 { font-size: clamp(25px, 6.7vw, 31px); margin: 5px 0; }
+  .heading p { font-size: 11px; line-height: 1.5; }
+  .timer { padding: 8px 10px; min-width: 70px; }
+  .timer strong { font-size: 27px; }
+  .introLayout { grid-template-columns: 1fr; gap: 16px; margin: 0 0 16px; }
+  .introBoard { width: 135px; margin: 0 auto; }
+  .introSticker { padding: 9px; font-size: 13px; right: -30px; }
+  .introRules { padding: 0; }
+  .introRules h2 { font-size: 25px; margin: 7px 0 13px; }
+  .introRules h2 br { display: none; }
+  .introRules ol { gap: 11px; }
+  .introRules li { gap: 10px; }
+  .introRules strong { font-size: 12px; }
+  .introRules li p { font-size: 11px; line-height: 1.5; margin-top: 3px; }
+  .introFacts { margin: 16px 0 10px; font-size: 10px; flex-wrap: wrap; }
+  .playBoard { width: min(100%, 340px, max(240px, calc(100svh - 255px))); }
+  .feedback { min-height: 0; margin: 12px 4px 8px; font-size: 11px; }
+  .help { max-width: 330px; margin: 10px auto 0; line-height: 1.5; }
+  .keyboardHelp { margin-top: 8px; }
+  .resultsLayout { display: flex; flex-direction: column; gap: 12px; }
+  .resultDetail { order: -1; width: 100%; padding: 14px; }
+  .revealBoard { width: min(100%, 270px); margin: auto; }
+  .detailTitle { margin-bottom: 10px; }
+  .detailTitle h2 { font-size: 21px; }
+  .resultsCards, .resultsCards[data-solo="true"] { display: flex; max-width: none; width: 100%; gap: 8px; overflow-x: auto; padding: 2px 0 6px; }
+  .resultsCards .resultCard, .resultsCards[data-solo="true"] .resultCard { display: flex; flex-direction: column; gap: 7px; flex: 0 0 155px; padding: 11px; }
+  .resultsCards[data-solo="true"] .resultCard { flex: 1; }
+  .resultsCards .resultThumbnail { display: none; }
+  .resultsCards .resultCardHeader, .resultsCards .resultCardScore { width: 100%; align-self: auto; }
+  .resultsCards .resultSummary { margin: 0; font-size: 10px; }
+  .resultsCards .resultCardScore b { font-size: 23px; }
+  .splitNumbers { margin: 10px 0; }
+  .comparisonNote { margin-top: 8px; }
+  .standings { margin-top: 16px; }
+  .standingsTitle { padding: 11px 13px; }
+  .standingsTitle h2 { font-size: 19px; }
+  .standings li { padding: 10px 13px; gap: 8px; }
+  .finalCard { padding: 22px 14px; }
+  .finalScore { font-size: 55px; margin: 10px 0; }
+  .finalScore span { font-size: 14px; }
+  .history { margin: 18px 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .history > div { padding: 10px 6px; }
+  .shareButton { margin-top: 0; font-size: 11px; }
+  .celebration { margin-top: 12px; padding: 8px 10px; gap: 8px; }
+  .trophyStamp { width: 47px; }
+  .celebrationCopy strong { font-size: 21px; margin: 3px 0; }
+  .celebrationCopy p { display: none; }
+  .celebrationBadge { font-size: 16px; padding: 8px; }
+  .mobileActions:has(button) { position: fixed; inset: auto 0 0; z-index: 20; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; width: 100%; max-width: none; margin: 0; padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid #e8dfcd; background: #fffaf0; box-shadow: 0 -5px 18px #6659450d; }
+  .mobileActions:has(button) > p { display: none; }
+  .mobileActions .primaryButton, .mobileActions .secondaryButton { flex: 1 1 0; width: auto; min-width: 0; min-height: 48px; margin: 0; padding: 11px 15px; font-size: 12px; gap: 10px; }
+  .footer { padding: 12px 16px 16px; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .page:not([data-motion="on"]) *, .page:not([data-motion="on"]) *::before { animation: none !important; transition: none !important; }

@@ -27,7 +27,7 @@
 .boardTop strong { color: #7b8e70; }
 .boardDoodle { position: absolute; right: -16px; bottom: -18px; color: #e6ad69; font-size: 45px; rotate: -13deg; pointer-events: none; }
 .phaseNote { min-height: 21px; margin: 23px 0 16px; text-align: center; font-size: 12px; font-weight: 700; font-style: italic; color: #7e8b76; }
-.playArea > button { min-width: 220px; }
+.playAction { min-width: 220px; }
 .revealLayout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(250px, .9fr); align-items: center; gap: 30px; margin: 6px 0 20px; }
 .revealBoardWrap { width: 100%; padding: 23px 30px 32px; }
 .revealPanel { border: 1px solid #e9dfc8; border-radius: 25px; padding: 28px; background: #fbf4e3; }
@@ -60,4 +60,24 @@
   .tally { grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .tally > span { flex-wrap: wrap; font-size: 10px; }
   .tally b { margin-left: 0; }
+}
+@media (max-width: 650px) {
+  .introPreview { width: 170px; padding: 10px 12px; margin: auto; border-radius: 18px; }
+  .introPreview .boardTop { margin-bottom: 8px; letter-spacing: 0; font-size: 7px; }
+  .introPreview .grid { gap: 5px; }
+  .previewFooter { margin-top: 9px; font-size: 8px; gap: 5px; }
+  .playArea { margin-bottom: 15px; }
+  .boardFrame { width: min(100%, 350px); padding: 14px 14px 18px; }
+  .boardTop { margin-bottom: 12px; }
+  .phaseNote { margin: 14px 0 8px; min-height: 0; font-size: 11px; }
+  .revealLayout { grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px; }
+  .revealBoardWrap { width: min(100%, 290px); padding: 14px; }
+  .revealPanel { padding: 15px; border-radius: 20px; }
+  .roundScore { font-size: 39px; margin: 8px 0 4px; }
+  .revealPanel > p { margin: 9px 0; font-size: 11px; }
+  .tally { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 14px 0; gap: 6px; }
+  .tally > span { gap: 5px; font-size: 10px; flex-wrap: wrap; }
+  .tally i { width: 13px; height: 13px; }
+  .tally b { margin-left: 0; }
+  .scoringNote { font-size: 10px !important; }
 }

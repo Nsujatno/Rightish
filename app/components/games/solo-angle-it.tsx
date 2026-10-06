@@ -6,7 +6,7 @@ import { ANGLE_IT_ROUNDS, ANGLE_IT_SECONDS, ANGLE_IT_START, generateAngleItMatch
   type AngleItChallenge, type AngleItResult } from "@/lib/games/angle-it";
 import { AngleItBoard } from "./angle-it-board";
 import { Celebration } from "./celebration";
-import { GameShell, RoundHeading } from "./game-shell";
+import { GameActions, GameShell, RoundHeading } from "./game-shell";
 import games from "./games.module.css";
 import styles from "./angle-it.module.css";
 
@@ -105,7 +105,7 @@ export default function SoloAngleIt({ initialSeed }: { initialSeed?: string }) {
           </ol>
           <div className={games.introFacts}><span>5 fresh angles</span><i>✦</i><span>20 seconds each</span></div>
           {initialSeed && <p className={games.sharedChallenge}>A friend’s challenge. Same angles, your own little twists.</p>}
-          <button className={games.primaryButton} onClick={() => start(initialSeed)}>Let’s angle it <span>↗</span></button>
+          <GameActions><button className={games.primaryButton} onClick={() => start(initialSeed)}>Let’s angle it <span>↗</span></button></GameActions>
         </div>
       </section>
     </>}
@@ -119,7 +119,7 @@ export default function SoloAngleIt({ initialSeed }: { initialSeed?: string }) {
           <div className={styles.boardFooter}><span className={styles.peachDot} /> The shaded bit is your angle.</div>
         </div>
         <p className={games.feedback}>{match.touched ? "Looking right-ish? You can keep tweaking." : "Grab the round handle and give it a go."}</p>
-        <button className={games.primaryButton} onClick={submit} disabled={!match.touched}>Lock in my angle <span>↗</span></button>
+        <GameActions><button className={games.primaryButton} onClick={submit} disabled={!match.touched}>Lock in my angle <span>↗</span></button></GameActions>
         <details className={games.keyboardHelp}><summary>Playing with a keyboard?</summary><p>Tab to the board. Arrow keys turn the hand; hold Shift for bigger turns. Home and End move to either end of the arc.</p></details>
       </section>
     </>}
@@ -140,7 +140,7 @@ export default function SoloAngleIt({ initialSeed }: { initialSeed?: string }) {
           <p className={styles.scoringNote}>{result.guessDegrees === null ? "Give the hand a turn next time to save a guess." : "1,000 points to start. 20 fewer for each degree off."}</p>
         </div>
       </section>
-      <div className={games.continueBar}><p>{result.timedOut && result.guessDegrees !== null ? "We saved your last position when time ran out." : "A new angle on things?"}</p><button className={games.primaryButton} onClick={next}>{match.roundIndex + 1 === ANGLE_IT_ROUNDS ? "Final score" : "Next angle"} <span>↗</span></button></div>
+      <div className={`${games.continueBar} ${games.mobileActions}`}><p>{result.timedOut && result.guessDegrees !== null ? "We saved your last position when time ran out." : "A new angle on things?"}</p><button className={games.primaryButton} onClick={next}>{match.roundIndex + 1 === ANGLE_IT_ROUNDS ? "Final score" : "Next angle"} <span>↗</span></button></div>
     </>}
 
     {match.phase === "finished" && <>
@@ -153,7 +153,7 @@ export default function SoloAngleIt({ initialSeed }: { initialSeed?: string }) {
           <span>ROUND {index + 1}</span><strong>{round.targetDegrees}°</strong><small>{round.guessDegrees === null ? "No guess" : `You: ${round.guessDegrees}° · ${Math.abs(round.differenceDegrees!)}° off`}</small>
           <b>{round.score.toLocaleString()} pts</b>
         </div>)}</div>
-        <div className={games.finalActions}><button className={games.primaryButton} onClick={() => start()}>Five fresh angles <span>↗</span></button><button className={games.secondaryButton} onClick={() => start(match.seed)}>Replay these angles ↶</button></div>
+        <div className={`${games.finalActions} ${games.mobileActions}`}><button className={games.primaryButton} onClick={() => start()}>Five fresh angles <span>↗</span></button><button className={games.secondaryButton} onClick={() => start(match.seed)}>Replay these angles ↶</button></div>
         <button className={games.shareButton} onClick={() => void share()}>Challenge a friend with these angles ↗</button>
         {copyMessage && <p className={games.copyMessage} role="status">{copyMessage}</p>}
       </section>

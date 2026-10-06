@@ -5,7 +5,7 @@ import { gameRegistry } from "@/lib/games/registry";
 import { formatSplit } from "@/lib/games/split-it/format";
 import { isPerfectSplit } from "@/lib/games/split-it";
 import { Celebration } from "./celebration";
-import { GameShell, RoundHeading } from "./game-shell";
+import { GameActions, GameShell, RoundHeading } from "./game-shell";
 import { RoundResults, Standings } from "./round-results";
 import { useSoloMatch } from "./use-solo-match";
 import { ShapePreview } from "./split-it/shape";
@@ -55,7 +55,7 @@ export default function SoloSplitIt({ initialSeed }: { initialSeed?: string }) {
           </ol>
           <div className={styles.introFacts}><span>5 fresh shapes</span><i>✦</i><span>20 seconds each</span></div>
           {initialSeed && <p className={styles.sharedChallenge}>You’ve got a shared challenge. Same shapes, fresh guesses.</p>}
-          <button className={styles.primaryButton} onClick={() => start(initialSeed)}>Let’s split it <span>↗</span></button>
+          <GameActions><button className={styles.primaryButton} onClick={() => start(initialSeed)}>Let’s split it <span>↗</span></button></GameActions>
         </div>
       </section>
     </>}
@@ -73,7 +73,7 @@ export default function SoloSplitIt({ initialSeed }: { initialSeed?: string }) {
         renderSummary={(result) => result.fractions ? `${formatSplit(result.fractions).join("% / ")}%` : "No cut submitted"}
         renderDetail={(player) => <SplitItReveal challenge={round.challenge} result={player.result} nickname={player.nickname} />} />
       <Standings players={players} currentPlayerId="solo" />
-      <div className={styles.continueBar}><p>Take it in. You set the pace.</p><button className={styles.primaryButton} onClick={match.next}>{match.roundIndex + 1 === settings.roundCount ? "Final scores" : "Next shape"} <span>↗</span></button></div>
+      <div className={`${styles.continueBar} ${styles.mobileActions}`}><p>Take it in. You set the pace.</p><button className={styles.primaryButton} onClick={match.next}>{match.roundIndex + 1 === settings.roundCount ? "Final scores" : "Next shape"} <span>↗</span></button></div>
     </>}
 
     {match.phase === "finished" && <>
@@ -83,7 +83,7 @@ export default function SoloSplitIt({ initialSeed }: { initialSeed?: string }) {
         <strong className={styles.finalScore}>{match.totalScore.toLocaleString()}<span> / 5,000</span></strong>
         <p>{match.totalScore >= 4500 ? "Your eyes deserve a tiny trophy." : match.totalScore >= 3000 ? "A very respectable amount of almost-right." : "Your confidence was the real winner."}</p>
         <div className={styles.history}>{match.rounds.map((item) => <div key={item.roundIndex}><span>ROUND {item.roundIndex + 1}</span><ShapePreview challenge={item.challenge} result={item.result} mini /><strong>{item.result.score.toLocaleString()}<small> pts</small></strong></div>)}</div>
-        <div className={styles.finalActions}><button className={styles.primaryButton} onClick={() => start()}>Five more shapes <span>↗</span></button><button className={styles.secondaryButton} onClick={() => start(match.matchSeed)}>Replay these shapes ↶</button></div>
+        <div className={`${styles.finalActions} ${styles.mobileActions}`}><button className={styles.primaryButton} onClick={() => start()}>Five more shapes <span>↗</span></button><button className={styles.secondaryButton} onClick={() => start(match.matchSeed)}>Replay these shapes ↶</button></div>
         <button className={styles.shareButton} onClick={() => void copyChallenge()}>Challenge a friend with these shapes ↗</button>
         {copyMessage && <p className={styles.copyMessage} role="status">{copyMessage}</p>}
       </section>

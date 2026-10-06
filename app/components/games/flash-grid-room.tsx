@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FlashGridBoard } from "./solo-flash-grid";
+import { GameActions } from "./game-shell";
 import type { FlashGridChallenge, FlashGridResult } from "@/lib/games/flash-grid";
 import styles from "./flash-grid.module.css";
 import games from "./games.module.css";
@@ -27,9 +28,9 @@ export function FlashGridRoomRound({ challenge, initialAnswer, serverNow, starts
       <span className={styles.boardDoodle} aria-hidden="true">✦</span>
     </div>
     <p className={styles.phaseNote} role="status">{studying ? "Remember the glowing squares." : "Tap the squares you remember. Tap again to undo."}</p>
-    {!studying && <button className={games.primaryButton} type="button" onClick={onConfirm} disabled={initialAnswer === null && selected.length === 0}>
+    {!studying && <GameActions><button className={`${games.primaryButton} ${styles.playAction}`} type="button" onClick={onConfirm} disabled={initialAnswer === null && selected.length === 0}>
       Lock in my picks <span>↗</span>
-    </button>}
+    </button></GameActions>}
   </div>;
 }
 

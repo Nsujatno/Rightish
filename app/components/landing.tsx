@@ -16,11 +16,10 @@ const games: { kind: GameArt; name: string; subtitle: string; description: strin
   { kind: "angle", name: "Angle It", subtitle: "A little turn. A wild guess.", description: "We give you an angle in degrees. Drag the hand until the peach wedge looks just right, then lock it in. Five angles. No degree markings. Just your very confident inner protractor." },
 ];
 
-function Icon({ kind }: { kind: "plus" | "arrow" | "sound" | "mute" | "motion" | "play" | "help" | "close" }) {
+function Icon({ kind }: { kind: "plus" | "arrow" | "motion" | "play" | "help" | "close" }) {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {kind === "plus" && <path d="M12 5v14M5 12h14" />}
     {kind === "arrow" && <path d="M4 12h16m-6-6 6 6-6 6" />}
-    {(kind === "sound" || kind === "mute") && <><path d="M11 4 6 8H3v8h3l5 4V4Z" />{kind === "sound" ? <><path d="M15 8a6 6 0 0 1 0 8M18 4a11 11 0 0 1 0 16" /></> : <path d="m16 9 6 6m0-6-6 6" />}</>}
     {kind === "motion" && <><path d="M8 4v16M16 4v16" /><path d="M3 8v8M21 8v8" /></>}
     {kind === "play" && <path d="m8 5 11 7-11 7V5Z" />}
     {kind === "help" && <><circle cx="12" cy="12" r="9" /><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3h.01" /></>}
@@ -37,39 +36,15 @@ export default function Landing() {
   const submitting = useRef(false);
   const router = useRouter();
   const activeRoom = useSetting("activeRoom");
-  const sound = useSetting("sound") === "true";
   const { paused, motion } = useMotionPreference();
   const dialog = useRef<HTMLDialogElement>(null);
-  const audio = useRef<AudioContext | null>(null);
   const game = games.find((item) => item.kind === modal);
 
   useEffect(() => {
     if (modal && dialog.current && !dialog.current.open) dialog.current.showModal();
   }, [modal]);
-  useEffect(() => () => { void audio.current?.close(); }, []);
-
-  function pop(enabled = sound) {
-    if (!enabled || !window.AudioContext) return;
-    try {
-      const context = audio.current ?? new AudioContext();
-      audio.current = context;
-      void context.resume().catch(() => {});
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.frequency.setValueAtTime(660, context.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(360, context.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.06, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.13);
-      oscillator.start();
-      oscillator.stop(context.currentTime + 0.14);
-      oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
-    } catch { /* Sound is optional when browser audio is unavailable. */ }
-  }
 
   function open(next: Modal) {
-    pop();
     setNickname(readSetting("nickname") ?? "");
     setRoomCode(readSetting("roomCode") ?? "");
     setError("");
@@ -86,7 +61,6 @@ export default function Landing() {
     try {
       const snapshot = await enterRoom(name, modal === "join" ? roomCode : undefined);
       if (modal === "join") saveSetting("roomCode", roomCode);
-      pop();
       router.push(`/room/${snapshot.room.code}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong. Try again.");
@@ -102,8 +76,7 @@ export default function Landing() {
       <nav className={styles.navigation} aria-label="Main navigation">
         <button className={styles.howButton} onClick={() => open("how")}><Icon kind="help" /><span>How to play</span></button>
         <span className={styles.navDivider} />
-        <button className={styles.iconButton} aria-label={sound ? "Turn sound off" : "Turn sound on"} title={sound ? "Sound on" : "Sound off"} aria-pressed={sound} onClick={() => { saveSetting("sound", String(!sound)); pop(!sound); }}><Icon kind={sound ? "sound" : "mute"} /></button>
-        <button className={`${styles.iconButton} ${styles.motionButton}`} aria-label={paused ? "Resume animations" : "Pause animations"} title={paused ? "Resume animations" : "Pause animations"} aria-pressed={!paused} onClick={() => { saveSetting("paused", String(!paused)); pop(); }}><Icon kind={paused ? "play" : "motion"} /><span className={styles.motionLabel}>Motion {paused ? "off" : "on"}</span></button>
+        <button className={`${styles.iconButton} ${styles.motionButton}`} aria-label={paused ? "Resume animations" : "Pause animations"} title={paused ? "Resume animations" : "Pause animations"} aria-pressed={!paused} onClick={() => saveSetting("paused", String(!paused))}><Icon kind={paused ? "play" : "motion"} /><span className={styles.motionLabel}>Motion {paused ? "off" : "on"}</span></button>
       </nav>
     </header>
 
@@ -111,7 +84,7 @@ export default function Landing() {
       <section className={styles.hero} aria-labelledby="hero-title">
         <Doodles />
         <div className={styles.heroContent}>
-          {activeRoom && /^[A-Z0-9]{6}$/.test(activeRoom) && <Link className={styles.resumeRoom} href={`/room/${activeRoom}`} onClick={() => pop()}>
+          {activeRoom && /^[A-Z0-9]{6}$/.test(activeRoom) && <Link className={styles.resumeRoom} href={`/room/${activeRoom}`}>
             <svg className={styles.resumeBubble} viewBox="0 0 300 108" fill="none" aria-hidden="true">
               <path d="M22 36 5 23 40 24 40 8 68 18 82 3 100 17 126 7 137 17 162 3 177 17 208 7 216 20 248 12 247 27 278 22 266 39 293 46 273 57 289 73 260 75 259 90 230 83 216 96 196 85 197 104 176 87 153 95 141 83 110 94 100 82 71 91 68 78 36 85 39 68 9 70 25 53 4 45Z" fill="#faf0d6" stroke="#b99957" strokeWidth="2.2" strokeLinejoin="round" />
               <path className={styles.resumeSpark} d="m276 4 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#d77760" />
