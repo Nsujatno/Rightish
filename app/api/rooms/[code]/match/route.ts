@@ -77,10 +77,10 @@ export async function POST(request: Request, context: Context) {
         throw new RoomError(409, "ROUND_NOT_STARTED", "The lights are still showing. Wait until it’s time to choose.");
       }
       if (answer !== null && !game.validateAnswer(match.challenge, answer)) {
-        throw new RoomError(400, "INVALID_ANSWER", "Those picks couldn’t be scored. Try choosing again.");
+        throw new RoomError(400, "INVALID_ANSWER", "That answer couldn’t be scored. Try choosing again.");
       }
       if (answer === null && body.confirm) {
-        throw new RoomError(400, "INVALID_ANSWER", "Place a cut before locking it in.");
+        throw new RoomError(400, "INVALID_ANSWER", "Make a guess before locking it in.");
       }
       const result = answer === null ? null : game.score(match.challenge, answer, gameOptionsFor(settings, match.gameId));
       if (result && (!Number.isInteger(result.score) || result.score < 0 || result.score > 1000)) {

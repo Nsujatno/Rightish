@@ -1,0 +1,74 @@
+.introArt { position: relative; display: grid; justify-items: center; padding: 32px; border-radius: 35px; background: #f8e8de; border: 1px solid #edd5c6; rotate: -2deg; box-shadow: 0 6px 0 #ebd8c95c; }
+.introArt svg { width: min(100%, 310px); }
+.introArt > span { font-family: var(--font-display), sans-serif; font-size: 24px; color: #a76a57; rotate: -4deg; }
+.playArea { display: flex; flex-direction: column; align-items: center; }
+.boardFrame { width: min(100%, 540px); border: 1px solid #ead7c6; border-radius: 28px; overflow: hidden; background-color: #fcf1e8; background-image: radial-gradient(#d9bca055 1px, transparent 1px); background-size: 22px 22px; box-shadow: 0 5px 0 #e9d8c75c; }
+.targetBanner { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 17px 27px; background: #f7e2d5; border-bottom: 1px solid #edd4c4; }
+.targetBanner > span:first-child { max-width: 90px; font-size: 10px; font-weight: 900; letter-spacing: 1.2px; line-height: 1.6; color: #946c59; }
+.targetBanner strong { font-family: var(--font-display), sans-serif; font-size: 57px; font-weight: 500; line-height: 1; color: #a35f49; }
+.targetAside { font-size: 11px; font-style: italic; font-weight: 700; color: #9f7d68; rotate: -5deg; }
+.boardSvg { display: block; width: 100%; }
+.boardSvg[data-interactive="true"] { touch-action: none; user-select: none; cursor: grab; }
+.boardSvg[data-interactive="true"]:active { cursor: grabbing; }
+.boardSvg:focus-visible { outline: 3px solid #647ab7; outline-offset: -6px; border-radius: 16px; }
+.boardCaption { font-family: var(--font-body), sans-serif; font-size: 13px; font-style: italic; fill: #a0836d; }
+.baselineLabel { font-family: var(--font-body), sans-serif; font-size: 12px; font-weight: 600; fill: #998570; }
+.boardFooter, .legend { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 14px 16px; background: #fffaf070; color: #9a7a65; font-size: 11px; font-weight: 700; border-top: 1px solid #efdfd0; }
+.peachDot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #d9957e; flex-shrink: 0; }
+.answerLine { display: inline-block; width: 20px; border-top: 3px dashed #6e8a67; }
+.legend { gap: 24px; }
+.legend > span { display: flex; align-items: center; gap: 7px; }
+.revealLayout { display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; gap: 36px; }
+.resultPanel { text-align: center; padding: 24px; }
+.comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0 18px; }
+.comparison div { display: grid; gap: 9px; }
+.comparison span { font-size: 9px; font-weight: 900; color: #998474; letter-spacing: 1px; }
+.comparison strong { font-family: var(--font-display), sans-serif; font-weight: 500; font-size: 38px; color: #b16e56; }
+.comparison div:last-child strong { color: #6e8a67; }
+.error { font-family: var(--font-display), sans-serif; font-size: 23px; color: #786b57; margin: 0 0 24px; }
+.scoreSticker { display: inline-grid; gap: 3px; background: #f7e4af; padding: 18px 27px; border: 1px solid #e6cc8c; border-radius: 17px; box-shadow: 0 4px 0 #e6cc8c70; rotate: -4deg; animation: pop .35s ease-out; }
+.scoreSticker strong { font-family: var(--font-display), sans-serif; font-size: 42px; font-weight: 500; color: #7a6238; line-height: 1; }
+.scoreSticker span { font-size: 9px; font-weight: 900; letter-spacing: 1.6px; color: #9b8253; }
+.scoringNote { font-size: 11px; line-height: 1.7; color: #8c8872; margin: 24px 0 0; }
+.history { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 28px 0; }
+.history > div { display: grid; gap: 10px; padding: 18px 9px; border-radius: 17px; background: #f8ede3; }
+.history span { font-size: 9px; font-weight: 900; color: #a28b76; }
+.history strong { font-family: var(--font-display), sans-serif; font-size: 29px; font-weight: 500; color: #ad7058; }
+.history small { font-size: 10px; line-height: 1.5; color: #8f8270; }
+.history b { font-size: 12px; color: #7e775f; }
+.countdown { position: relative; width: 100%; height: 100%; }
+.countdown svg { display: block; width: 100%; height: 100%; }
+.countdownHand { transform-origin: 100px 137px; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+.countdownNumber { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 60px; height: 60px; border: 2px solid #c37f6b; border-radius: 19px; background: #f9e5d8; color: #a35f49; font-family: var(--font-display), sans-serif; font-size: 43px; box-shadow: 0 4px 0 #c37f6b30; }
+.roomWaiting { display: grid; justify-items: center; gap: 10px; color: #a27861; font-size: 12px; font-weight: 800; }
+.roomWaiting svg { width: min(100%, 150px); }
+.roomReveal { min-width: 0; }
+.noGuess { padding: 28px 16px; text-align: center; color: #998474; font-size: 12px; line-height: 1.8; }
+.noGuess strong { color: #6e8a67; font-size: 16px; }
+.roomResult { text-align: center; padding: 5px 0 10px; }
+.roomResult .comparison { margin: 18px 0 12px; }
+.roomResult .comparison strong { font-size: 32px; }
+.roomResult .error { margin-bottom: 16px; font-size: 21px; }
+.roomResult .scoreSticker { padding: 12px 24px; }
+.roomResult .scoreSticker strong { font-size: 31px; }
+@keyframes pop { from { transform: scale(.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (max-width: 650px) {
+  .introArt { width: min(100%, 310px); justify-self: center; padding: 18px; border-radius: 26px; }
+  .introArt svg { max-width: 215px; }
+  .introArt > span { font-size: 20px; }
+  .boardFrame { border-radius: 23px; }
+  .targetBanner { padding: 15px 18px; }
+  .targetBanner strong { font-size: 48px; }
+  .targetBanner > span:first-child { font-size: 9px; max-width: 72px; }
+  .targetAside { font-size: 10px; }
+  .playArea > button { width: 100%; }
+  .revealLayout { grid-template-columns: 1fr; gap: 15px; }
+  .revealLayout .boardFrame { max-width: 390px; justify-self: center; }
+  .resultPanel { padding: 10px 8px; }
+  .comparison { margin-top: 10px; }
+  .comparison strong { font-size: 33px; }
+  .scoreSticker { padding: 13px 25px; }
+  .scoreSticker strong { font-size: 34px; }
+  .history { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .history > div:last-child { grid-column: 1 / -1; }
+}

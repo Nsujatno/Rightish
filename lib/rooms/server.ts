@@ -21,10 +21,10 @@ const databaseErrors: Record<string, [number, string]> = {
   PLAYERS_NOT_READY: [409, "At least two players must be here and everyone must be ready."],
   INVALID_ROUND: [400, "That round couldn’t be started."],
   ROUND_CLOSED: [409, "That round has already ended. Results are on their way."],
-  ROUND_NOT_STARTED: [409, "Wait for the countdown before cutting."],
+  ROUND_NOT_STARTED: [409, "Wait for the countdown before making your guess."],
   ROUND_NOT_READY: [409, "The round is still going. Wait for the reveal."],
-  INVALID_ANSWER: [400, "That cut couldn’t be scored. Try placing it again."],
-  ALREADY_CONFIRMED: [409, "Your cut is already locked in."],
+  INVALID_ANSWER: [400, "That answer couldn’t be scored. Try choosing again."],
+  ALREADY_CONFIRMED: [409, "Your answer is already locked in."],
 };
 
 export function nickname(value: unknown) {

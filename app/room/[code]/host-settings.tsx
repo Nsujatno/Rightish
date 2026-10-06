@@ -50,6 +50,7 @@ const gameSettingsUi: Record<GameId, {
   },
   "flash-grid": { art: "grid" },
   "internal-clock": { art: "clock" },
+  "angle-it": { art: "angle", describeOptions: () => "random degree targets" },
 };
 
 function numberError(value: string, minimum: number, maximum: number, label: string) {

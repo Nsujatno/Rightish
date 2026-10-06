@@ -110,8 +110,9 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
     if (locking || match.myConfirmed || serverNow >= deadline) return;
     latestAnswer.current = answer;
     pending.current = { answer, confirm: false };
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => { saveTimer.current = null; void drain(); }, 120);
+    // Save while the hand/anchors keep moving, rather than waiting for a pause.
+    // The queue replaces older positions with the newest and serializes requests.
+    if (!saveTimer.current) saveTimer.current = setTimeout(() => { saveTimer.current = null; void drain(); }, 120);
   }
 
   function confirm() {
@@ -182,7 +183,7 @@ export function RoomMatch({ code, snapshot, onSnapshot, onLeave }: {
           view.preview(match.challenge, view.result(match.challenge, null, options))}</div>
       </section> : <div key={`${match.id}:${match.roundIndex}`}>
         <Round challenge={match.challenge} options={options} initialAnswer={match.myAnswer}
-          serverNow={serverNow} startsAt={match.startsAt}
+          serverNow={serverNow} startsAt={match.startsAt} deadline={match.deadline}
           onAnswerChange={changeAnswer} onConfirm={confirm} />
         {seconds === 0 && <p className={styles.matchNotice}>Time is up. Checking everyone’s answers…</p>}
       </div>}

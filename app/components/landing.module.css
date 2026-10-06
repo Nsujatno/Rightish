@@ -50,7 +50,7 @@
 .splitDoodle { top: 75px; left: calc(8% + 24px); rotate: -14deg; }
 .gridDoodle { top: 91px; right: 7%; rotate: 13deg; width: 155px; animation-delay: -2s; }
 .clockDoodle { bottom: 60px; left: 9%; width: 125px; rotate: 11deg; animation-delay: -3s; }
-.mirrorDoodle { bottom: 50px; right: 6%; width: 170px; rotate: -10deg; animation-delay: -1s; }
+.angleDoodle { bottom: 50px; right: 6%; width: 170px; rotate: -10deg; animation-delay: -1s; }
 .sparkle { position: absolute; font-size: 28px; animation: ambientDrift 7s ease-in-out infinite; }
 .sparkle:nth-of-type(even) { font-size: 19px; animation-duration: 8s; animation-delay: -3s; }
 .sparkle:nth-of-type(3n) { animation-duration: 9s; animation-delay: -5s; }
@@ -68,7 +68,7 @@
 .split { background: #faf0d6; }
 .grid { background: #eaf0e4; }
 .clock { background: #edf0f7; }
-.mirror { background: #f9e9e2; }
+.angle { background: #f9e9e2; }
 .gameNumber { position: absolute; top: 15px; left: 17px; font-size: 10px; color: #8c907c; font-weight: 800; }
 .cardArt { height: 122px; display: flex; justify-content: center; }
 .cardArt svg { width: 132px; }
@@ -128,7 +128,7 @@
   .splitDoodle { left: calc(3% + 24px); width: 130px; }
   .gridDoodle { right: 2%; width: 120px; }
   .clockDoodle { left: 4%; width: 105px; }
-  .mirrorDoodle { right: 3%; width: 125px; }
+  .angleDoodle { right: 3%; width: 125px; }
   .doodle > span { font-size: 10px; }
   .hero { min-height: 610px; }
   .gameSection { margin: 0 24px; padding-inline: 0; }
@@ -150,7 +150,7 @@
   .gridDoodle { top: -15px; right: -13px; width: 87px; opacity: .75; }
   .doodle > span { display: none; }
   .clockDoodle { bottom: 15px; left: 3%; width: 77px; }
-  .mirrorDoodle { bottom: 15px; right: 0; width: 100px; }
+  .angleDoodle { bottom: 15px; right: 0; width: 100px; }
   .sparkle { font-size: 17px; }
   .sparkle:nth-of-type(2), .sparkle:nth-of-type(3), .littleRing, .squiggle { display: none; }
   .sectionHeading { flex-direction: column; align-items: flex-start; gap: 10px; }
@@ -181,7 +181,7 @@
   .heroNote { font-size: 11px; line-height: 20px; margin-top: 16px; }
   .noteArrow { left: calc(50% - 148px); height: 76px; }
   .clockDoodle { bottom: 4px; left: 3%; width: 63px; }
-  .mirrorDoodle { bottom: 3px; right: 1%; width: 75px; }
+  .angleDoodle { bottom: 3px; right: 1%; width: 75px; }
   .gameSection { padding-top: 29px; margin-inline: 20px; padding-bottom: 28px; }
   .sectionEyebrow { font-size: 8px; letter-spacing: 1px; }
   .sectionHeading h2 { font-size: 25px; max-width: 310px; }

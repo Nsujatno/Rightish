@@ -1,6 +1,6 @@
 ﻿# Rightish
 
-A party game for your perfectly imperfect brain. The landing page, live rooms, solo Split It, Flash Grid, and Internal Clock practice, and synchronized room matches for all three games are implemented.
+A party game for your perfectly imperfect brain. The landing page, live rooms, and solo practice and synchronized room matches for Split It, Flash Grid, Internal Clock, and Angle It are implemented.
 
 ## Local development
 
@@ -62,6 +62,17 @@ Open `/play/internal-clock`, or select Internal Clock on the landing page and ch
 - Review the five results and replay the targets.
 - In rooms, the host can set 1–10 rounds and choose a separate 1–30 second target for each round. Everyone starts after the shared countdown; each player presses Stop when the target feels right. The server records and scores the stop time, and the round ends when everyone stops or five seconds after the target.
 - Apply `supabase/migrations/202610050007_internal_clock_round_timing.sql` after migration 006 before starting an Internal Clock room match.
+
+## Angle It
+
+Open `/play/angle-it`, or select Angle It on the landing page and choose **Try Angle It**.
+
+- Five solo rounds with shared-link replay, 20 seconds each. Rotate a hand against a fixed horizontal arm to match the target degrees; the peach wedge identifies the measured angle.
+- Each degree of absolute error costs 20 of the 1,000 available points. Reveal overlays the target in sage and compares both angles.
+- Multiplayer hosts choose 1–10 rounds and 5–60 seconds per round. Everyone receives the same random target after a shared angle countdown. Saved positions recover on reconnect; the server validates and scores each guess.
+- No new Angle It migration is needed. Existing migrations through 007 cover all four games. Live multiplayer and real-device playtesting remain unverified.
+
+See [Angle It rules and room behavior](docs/angle-it.md).
 
 ## Checks
 

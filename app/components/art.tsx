@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import styles from "./landing.module.css";
 
-export type GameArt = "split" | "grid" | "clock" | "mirror";
+export type GameArt = "split" | "grid" | "clock" | "angle";
 
 export function Illustration({ kind }: { kind: GameArt }) {
   return (
@@ -25,11 +25,15 @@ export function Illustration({ kind }: { kind: GameArt }) {
         <path d="M100 58v40l25 15" stroke="#7E89AD" strokeWidth="6" strokeLinecap="round" /><circle cx="100" cy="98" r="6" fill="#7E89AD" />
         <path d="M100 52v5M100 139v5M54 98h5M141 98h5" stroke="#BAC7E5" strokeWidth="4" strokeLinecap="round" />
       </>}
-      {kind === "mirror" && <>
-        <path d="m47 45 26 47-53 1 27-48Z" fill="#E99D8C" /><path d="m153 45 26 47-53 1 27-48Z" fill="#F2C9BB" />
-        <path d="M100 17v140" stroke="#BB8A80" strokeWidth="3" strokeDasharray="6 8" strokeLinecap="round" />
-        <circle cx="53" cy="124" r="20" fill="#E99D8C" /><circle cx="147" cy="124" r="20" fill="#F2C9BB" />
-        <path d="m79 33-9-5m9 5-8 6m-1-6h-18M122 33l9-5m-9 5 8 6m1-6h18" stroke="#BB8A80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      {kind === "angle" && <>
+        <path d="M100 133H45A55 55 0 0 1 127.5 85.4L100 133Z" fill="#F2C9BB" />
+        <path d="M45 133A55 55 0 0 1 127.5 85.4" stroke="#BB8A80" strokeWidth="2.5" strokeDasharray="4 5" strokeLinecap="round" />
+        <path d="M21 133H100" stroke="#A08B76" strokeWidth="9" strokeLinecap="round" />
+        <path d="m100 133 46-80" stroke="#C37F6B" strokeWidth="10" strokeLinecap="round" />
+        <circle cx="146" cy="53" r="8" fill="#F9E5D8" stroke="#C37F6B" strokeWidth="2.5" />
+        <circle cx="100" cy="133" r="5" fill="#A08B76" />
+        <path d="M159 80q21 14 10 34m-4-9 4 9 9-4" stroke="#BB8A80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="29" y="54" fill="#B17A67" fontSize="22" fontFamily="var(--font-display), sans-serif" transform="rotate(-9 29 54)">120°?</text>
       </>}
     </svg>
   );
@@ -40,7 +44,7 @@ export function Doodles() {
     <div className={`${styles.doodle} ${styles.splitDoodle}`}><Illustration kind="split" /><span>half-ish?</span></div>
     <div className={`${styles.doodle} ${styles.gridDoodle}`}><Illustration kind="grid" /><span>wait, which ones?</span></div>
     <div className={`${styles.doodle} ${styles.clockDoodle}`}><Illustration kind="clock" /></div>
-    <div className={`${styles.doodle} ${styles.mirrorDoodle}`}><Illustration kind="mirror" /><span>looks about right.</span></div>
+    <div className={`${styles.doodle} ${styles.angleDoodle}`}><Illustration kind="angle" /><span>give it a little twist.</span></div>
     {[
       ["8%", "14%", "#c2cfe2", "12deg"], ["29%", "28%", "#e8aa99", "-16deg"],
       ["71%", "16%", "#c5d4b8", "12deg"], ["92%", "65%", "#e8aa99", "22deg"],

@@ -24,6 +24,97 @@ const { flashGrid } = require("../lib/games/flash-grid-room.ts");
 const { INTERNAL_CLOCK_TARGETS, scoreInternalClock, formatClockSeconds, internalClockRoundLimitMs, roomClockElapsedMs } = require("../lib/games/internal-clock.ts");
 const { internalClock } = require("../lib/games/internal-clock-room.ts");
 const { resolveMotionPreference } = require("../lib/preferences/motion.ts");
+const { generateAngleItMatch, scoreAngleIt, isAngleItAnswer, angleFromPoint } = require("../lib/games/angle-it.ts");
+const { angleIt } = require("../lib/games/angle-it-room.ts");
+
+test("Angle It room settings allow 1–10 rounds, 5–60 seconds, and random targets only", () => {
+  const settings = (roundCount = 5, durationSeconds = 20, options = {}) => ({
+    enabledGameIds: ["angle-it"], gameSettings: { "angle-it": { roundCount, durationSeconds, options } },
+  });
+  assert.deepEqual(parseMatchSettings(settings()), settings());
+  assert.deepEqual(parseMatchSettings(settings(1, 5)), settings(1, 5));
+  assert.deepEqual(parseMatchSettings(settings(10, 60)), settings(10, 60));
+  assert.equal(matchRoundCount(settings(10, 60)), 10);
+  assert.deepEqual(parseMatchSettings(settingsForDatabase(settings(10, 60))), settings(10, 60));
+  for (const invalid of [settings(0), settings(11), settings(1.5), settings(5, 4), settings(5, 61),
+    settings(5, 5.5), settings(5, 20, null), settings(5, 20, []), settings(5, 20, { targetDegrees: 120 })]) {
+    assert.equal(parseMatchSettings(invalid), null);
+  }
+});
+
+test("Angle It room rounds share deterministic targets and score valid saved angles including zero", () => {
+  for (let roundIndex = 0; roundIndex < 10; roundIndex++) {
+    const seed = `room-angle:${roundIndex}`;
+    const round = angleIt.generate(seed, {}, roundIndex);
+    assert.deepEqual(round, angleIt.generate(seed, {}, roundIndex));
+    assert.ok(round.targetDegrees >= 15 && round.targetDegrees <= 165);
+    assert.equal(angleIt.validateAnswer(round, 0), true);
+    assert.equal(angleIt.validateAnswer(round, 180), true);
+    assert.equal(angleIt.validateAnswer(round, "120"), false);
+    assert.equal(angleIt.validateAnswer(round, NaN), false);
+    assert.equal(angleIt.score(round, round.targetDegrees).score, 1000);
+    assert.equal(angleIt.score(round, null).score, 0);
+  }
+  for (const index of [-1, 10, 0.5]) assert.throws(() => angleIt.generate("invalid", {}, index), RangeError);
+});
+
+test("mixed matches keep Angle It fourth and use its own game round index", () => {
+  const settings = { enabledGameIds: ["angle-it", "internal-clock", "flash-grid", "split-it"], gameSettings: {
+    "split-it": { roundCount: 1, durationSeconds: 20, options: { targetPercent: 50 } },
+    "flash-grid": { roundCount: 1, durationSeconds: 23, options: { rounds: [{ size: 3, studySeconds: 3, recallSeconds: 20 }] } },
+    "internal-clock": { roundCount: 1, durationSeconds: 8, options: { rounds: [{ targetSeconds: 5 }] } },
+    "angle-it": { roundCount: 3, durationSeconds: 30, options: {} },
+  } };
+  assert.deepEqual(parseMatchSettings(settings), settings);
+  assert.deepEqual([0, 1, 2, 3, 4, 5].map((index) => selectGame(settings, index)),
+    ["split-it", "flash-grid", "internal-clock", "angle-it", "angle-it", "angle-it"]);
+  assert.deepEqual([3, 4, 5].map((index) => gameRoundIndex(settings, index)), [0, 1, 2]);
+});
+
+test("Angle It generates reproducible, distinct targets with a mix of acute and obtuse angles", () => {
+  const seen = new Set();
+  for (let index = 0; index < 200; index++) {
+    const rounds = generateAngleItMatch(`angles:${index}`);
+    assert.deepEqual(rounds, generateAngleItMatch(`angles:${index}`));
+    assert.equal(rounds.length, 5);
+    assert.equal(new Set(rounds.map((round) => round.targetDegrees)).size, 5);
+    rounds.forEach((round, roundIndex) => {
+      assert.ok(Number.isInteger(round.targetDegrees) && round.targetDegrees >= 15 && round.targetDegrees <= 165);
+      assert.notEqual(round.targetDegrees, 90);
+      if (roundIndex < 2) assert.equal(round.targetDegrees % 15, 0);
+      if (roundIndex === 2) assert.equal(round.targetDegrees % 5, 0);
+      seen.add(round.targetDegrees);
+    });
+  }
+  assert.ok(seen.has(15) && seen.has(165) && seen.has(91));
+});
+
+test("Angle It measures the shaded upper angle from the left baseline, including lower-half clamps", () => {
+  close(angleFromPoint(70, 300, 250, 300), 0);
+  close(angleFromPoint(250, 120, 250, 300), 90);
+  close(angleFromPoint(430, 300, 250, 300), 180);
+  close(angleFromPoint(340, 300 - 90 * Math.sqrt(3), 250, 300), 120);
+  assert.equal(angleFromPoint(70, 400, 250, 300), 0);
+  assert.equal(angleFromPoint(430, 400, 250, 300), 180);
+});
+
+test("Angle It scores symmetric angular errors, preserves tenth-degree guesses, and rejects invalid input", () => {
+  const target = { seed: "analytic", generatorVersion: 1, targetDegrees: 120 };
+  assert.equal(scoreAngleIt(target, 120).score, 1000);
+  assert.equal(scoreAngleIt(target, 115).score, 900);
+  assert.equal(scoreAngleIt(target, 125).score, 900);
+  assert.equal(scoreAngleIt(target, 119.54).guessDegrees, 119.5);
+  assert.equal(scoreAngleIt(target, 119.54).differenceDegrees, -0.5);
+  assert.equal(scoreAngleIt(target, 119.54).score, 990);
+  assert.equal(scoreAngleIt(target, 70).score, 0);
+  assert.equal(scoreAngleIt(target, 0).score, 0);
+  assert.equal(isAngleItAnswer(0), true);
+  assert.equal(isAngleItAnswer(180), true);
+  for (const invalid of [null, undefined, "120", {}, [], NaN, Infinity, -1, 181]) {
+    assert.equal(isAngleItAnswer(invalid), false);
+    assert.deepEqual(scoreAngleIt(target, invalid), { targetDegrees: 120, guessDegrees: null, differenceDegrees: null, score: 0 });
+  }
+});
 
 const square = [{ x: 0.1, y: 0.1 }, { x: 0.9, y: 0.1 }, { x: 0.9, y: 0.9 }, { x: 0.1, y: 0.9 }];
 const challenge = (points) => ({ seed: "analytic", generatorVersion: 1, family: "angular", points, color: "#edc46d" });

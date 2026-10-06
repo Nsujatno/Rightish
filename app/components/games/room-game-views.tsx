@@ -18,6 +18,8 @@ import { internalClock } from "@/lib/games/internal-clock-room";
 import { formatClockSeconds, internalClockRoundLimitMs, type InternalClockChallenge, type InternalClockResult } from "@/lib/games/internal-clock";
 import { clockVerdict } from "./internal-clock-presentation";
 import { InternalClockCountdown, InternalClockRoomPreview, InternalClockRoomReveal, InternalClockRoomRound, InternalClockRoomWaiting } from "./internal-clock-room";
+import { scoreAngleIt, type AngleItChallenge, type AngleItResult } from "@/lib/games/angle-it";
+import { AngleItCountdown, AngleItRoomPreview, AngleItRoomReveal, AngleItRoomRound, AngleItRoomWaiting } from "./angle-it-room";
 
 export type RoomGameView = {
   prompt: (options: unknown) => string;
@@ -27,7 +29,7 @@ export type RoomGameView = {
   countdownDescription?: (challenge: unknown) => string;
   countdownGoal?: (challenge: unknown) => string;
   Round: ComponentType<{ challenge: unknown; options: unknown; initialAnswer: unknown;
-    onAnswerChange: (value: unknown | null) => void; onConfirm: () => void; serverNow: number; startsAt: string }>;
+    onAnswerChange: (value: unknown | null) => void; onConfirm: () => void; serverNow: number; startsAt: string; deadline: string }>;
   heading?: (challenge: unknown, serverNow: number, startsAt: string) => { eyebrow: string; title: string; description: string; seconds?: number };
   result: (challenge: unknown, value: unknown, options: unknown) => ScoredResult;
   preview: (challenge: unknown, result: ScoredResult) => ReactNode;
@@ -167,10 +169,42 @@ const internalClockView: RoomGameView = {
   exactDetail: "Your brain brought its own stopwatch.",
 };
 
+const angleItView: RoomGameView = {
+  CountdownArt: AngleItCountdown,
+  countdownLabel: "READY YOUR INNER PROTRACTOR",
+  countdownTitle: "Give it a little turn.",
+  countdownDescription: () => "Match the target degrees when the countdown ends. Everyone gets the same angle.",
+  countdownGoal(challenge) { return `TARGET · ${(challenge as AngleItChallenge).targetDegrees}°`; },
+  prompt: () => "Drag the hand until the peach angle feels like the target.",
+  Round: function AngleItRoundView({ challenge, initialAnswer, onAnswerChange, onConfirm, serverNow, deadline }) {
+    return <AngleItRoomRound challenge={challenge as AngleItChallenge} initialAnswer={initialAnswer}
+      onAnswerChange={onAnswerChange} onConfirm={onConfirm} serverNow={serverNow} deadline={deadline} />;
+  },
+  result(challenge, value) {
+    return value && typeof value === "object" && "score" in value ? value as AngleItResult
+      : scoreAngleIt(challenge as AngleItChallenge, null);
+  },
+  preview(_challenge, result) { return <AngleItRoomPreview result={result as AngleItResult} />; },
+  waitingPreview(challenge) { return <AngleItRoomWaiting challenge={challenge as AngleItChallenge} />; },
+  summary(result) {
+    const angle = result as AngleItResult;
+    return angle.guessDegrees === null ? "No angle submitted" : `${angle.guessDegrees}° · ${Math.abs(angle.differenceDegrees!)}° off`;
+  },
+  detail(_challenge, result, nickname) { return <AngleItRoomReveal result={result as AngleItResult} nickname={nickname} />; },
+  exact(result) {
+    const difference = (result as AngleItResult).differenceDegrees;
+    return difference !== null && Math.abs(difference) <= 0.5;
+  },
+  exactBadge: () => "0.5° off or less",
+  exactMessage: "Angle ace!",
+  exactDetail: "Your inner protractor deserves a little bow.",
+};
+
 // A new playable game adds one typed rules entry and one view entry. The room
 // engine, server validation, timing, and standings then stay the same.
 export const roomGameViews: Record<GameId, RoomGameView> = {
   "split-it": splitItView,
   "flash-grid": flashGridView,
   "internal-clock": internalClockView,
+  "angle-it": angleItView,
 };

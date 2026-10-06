@@ -13,7 +13,7 @@ const games: { kind: GameArt; name: string; subtitle: string; description: strin
   { kind: "split", name: "Split It", subtitle: "Two halves. One wild guess.", description: "Place two anchors to cut a wobbly shape into two equal halves. Drag either point until you’re happy, then lock it in. The closer to 50/50, the better!" },
   { kind: "grid", name: "Flash Grid", subtitle: "Now you see it. Now you don’t.", description: "A few squares light up for a moment, then disappear. Pick the squares you remember seeing. Your memory is probably great… right?" },
   { kind: "clock", name: "Internal Clock", subtitle: "Time flies. Can you catch it?", description: "Start a hidden timer, then stop it when you think the target time has passed. No clock to watch. Just you and your surprisingly questionable sense of time." },
-  { kind: "mirror", name: "Mirror Me", subtitle: "Same same. But the other way.", description: "An object sits on one side of a mirror line. Drag its twin to the exact reflected position on the other side. Looks right? Let’s find out." },
+  { kind: "angle", name: "Angle It", subtitle: "A little turn. A wild guess.", description: "We give you an angle in degrees. Drag the hand until the peach wedge looks just right, then lock it in. Five angles. No degree markings. Just your very confident inner protractor." },
 ];
 
 function Icon({ kind }: { kind: "plus" | "arrow" | "sound" | "mute" | "motion" | "play" | "help" | "close" }) {
@@ -131,7 +131,7 @@ export default function Landing() {
       </section>
 
       <section className={styles.gameSection} aria-labelledby="games-title">
-        <div className={styles.sectionHeading}><div><span className={styles.sectionEyebrow}>SMALL CHALLENGES. QUESTIONABLE CONFIDENCE.</span><h2 id="games-title">Meet your brain’s new frenemies.</h2></div><span className={styles.comingSoon}><span /> A peek at what’s coming</span></div>
+        <div className={styles.sectionHeading}><div><span className={styles.sectionEyebrow}>SMALL CHALLENGES. QUESTIONABLE CONFIDENCE.</span><h2 id="games-title">Meet your brain’s new frenemies.</h2></div><span className={styles.comingSoon}><span /> Four little games. Give them a go.</span></div>
         <div className={styles.games}>
           {games.map((item, index) => <button key={item.kind} className={`${styles.gameCard} ${styles[item.kind]}`} onClick={() => open(item.kind)} aria-label={`Learn about ${item.name}`}><span className={styles.gameNumber}>0{index + 1}</span><div className={styles.cardArt}><Illustration kind={item.kind} /></div><div className={styles.cardBottom}><div><h3>{item.name}</h3><p>{item.subtitle}</p></div><span className={styles.cardArrow}><Icon kind="arrow" /></span></div></button>)}
         </div>
@@ -148,14 +148,14 @@ export default function Landing() {
         <h2 id="dialog-title">Good friends.<br />Bad estimates.</h2>
         <p className={styles.modalDescription}>Quick minigames that put your perception, memory, and timing to the test.</p>
         <ol className={styles.steps}><li><span>1</span><div><h3>Get the gang together.</h3><p>One friend hosts. Everyone else joins with a room code and a nickname.</p></div></li><li><span>2</span><div><h3>Go with your gut.</h3><p>Face the same little challenge. Make your best guess before time runs out.</p></div></li><li><span>3</span><div><h3>See how close you got.</h3><p>Reveal the answer, collect points, and insist you’ll win the next round.</p></div></li></ol>
-        <div className={styles.previewNotice}>Get your crew together in the lobby. Playable rounds are coming next.</div>
+        <div className={styles.previewNotice}>Try all four games solo, or bring your crew together in a multiplayer room.</div>
         <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Got it <Icon kind="arrow" /></button>
       </> : game ? <>
         <div className={`${styles.modalArt} ${styles[game.kind]}`}><Illustration kind={game.kind} /></div>
-        <span className={styles.modalEyebrow}>{game.kind === "mirror" ? "ON THE WAY" : "TRY SOLO PRACTICE"}</span><h2 id="dialog-title">{game.name}</h2><p className={styles.modalDescription}>{game.description}</p>
-        {game.kind !== "mirror" ? <Link className={`${styles.submitButton} ${styles.practiceLink}`}
-          href={game.kind === "split" ? "/play/split-it" : game.kind === "grid" ? "/play/flash-grid" : "/play/internal-clock"}>
-          Try {game.name} <Icon kind="arrow" /></Link> : <button className={styles.submitButton} onClick={() => dialog.current?.close()}>Sounds about right <Icon kind="arrow" /></button>}
+        <span className={styles.modalEyebrow}>TRY SOLO PRACTICE</span><h2 id="dialog-title">{game.name}</h2><p className={styles.modalDescription}>{game.description}</p>
+        <Link className={`${styles.submitButton} ${styles.practiceLink}`}
+          href={game.kind === "split" ? "/play/split-it" : game.kind === "grid" ? "/play/flash-grid" : game.kind === "clock" ? "/play/internal-clock" : "/play/angle-it"}>
+          Try {game.name} <Icon kind="arrow" /></Link>
       </> : modal === "host" || modal === "join" ? <>
         <span className={styles.modalEyebrow}>LET’S GET YOU READY</span>
         <h2 id="dialog-title">{modal === "host" ? "Your party starts here." : "Come on in."}</h2>

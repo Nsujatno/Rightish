@@ -1,10 +1,11 @@
 import { splitIt } from "./split-it";
 import { flashGrid } from "./flash-grid-room";
 import { internalClock } from "./internal-clock-room";
+import { angleIt } from "./angle-it-room";
 import type { MatchSettings } from "./types";
 
 // Add games here as they become playable; host settings use this same catalog.
-export const gameRegistry = { "split-it": splitIt, "flash-grid": flashGrid, "internal-clock": internalClock } as const;
+export const gameRegistry = { "split-it": splitIt, "flash-grid": flashGrid, "internal-clock": internalClock, "angle-it": angleIt } as const;
 export type GameId = keyof typeof gameRegistry;
 export const gameCatalog = Object.values(gameRegistry).map(({ id, name, instructions, defaultRoundCount, defaultDurationSeconds, limits }) => ({
   id: id as GameId, name, instructions, defaultRoundCount, defaultDurationSeconds, limits,
